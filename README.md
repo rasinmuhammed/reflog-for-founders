@@ -1,149 +1,120 @@
-# Reflog 🧠
+# reflog, for founders
+(Building -- in progress )
+### Your AI Advisory Board. Brutally Honest. Always Available.
 
-> **Reflect on Your Code. Get Unstuck.**
-> The AI mentor built out of necessity.
+Stop building in circles. Find your true north.
 
-We're drowning in AI that tells us "You're right," even when we're demonstrably stuck. I saw a meme that perfectly captured it: *"In this era, anyone dumb is being told 'You are right' by ChatGPT."* That hit home. We ask for advice, hoping for challenge, but often get validation that keeps us spinning our wheels.
+[](https://github.com/rasinmuhammed/reflog)
 
-My greatest weakness? Never having a real mentor to call out my patterns and push me past my comfort zone. When you lack that guidance, you build it. That's the builder's spirit, and that's why Reflog exists.
+-----
 
-Reflog isn't trying to be your friend; it's designed to be the objective, data-driven mirror developers need. It connects to your GitHub, analyzes your *actual* coding habits, helps you define and track concrete goals, and provides brutally honest feedback based on your actions, not just your words.
+We're drowning in founder advice that validates us even when we're clearly stuck. I saw the pattern everywhere: "In this era, founders are being told 'You're doing great' by AI while their runway burns and customers don't convert." That hit different. We ask for strategic advice, hoping for challenge, but often get cheerleading that keeps us spinning our wheels.
 
-**This MVP focuses squarely on developer accountability.** It's the first step towards a larger vision: creating a personalized advisory board for anyone seeking clarity and growth. But for now, Reflog delivers what many developers are missing: **unbiased reflection and a push towards consistent shipping.**
+My greatest frustration? Watching brilliant founders (including myself) fail not from lack of skill, but from lack of honest feedback. When you can't afford a $10K/month advisor and your co-founder won't call out your blind spots, you need something else. That's the builder's response, and that's why **reflog** exists.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
-![Next.js](https://img.shields.io/badge/next.js-14-black.svg)
+**reflog** isn't trying to be your cheerleader; it's designed to be the objective, data-driven mirror founders need. It tracks your actual business metrics, helps you define and measure concrete goals, and provides brutally honest feedback based on your actions, not just your pitch deck promises.
 
-## 🎯 The Problem: Why We Get Stuck
+This MVP focuses squarely on founder accountability. It's the first step towards a larger vision: creating a personalized advisory board for anyone building a business. But for now, **reflog** delivers what most founders are missing: unbiased reflection and a push towards consistent execution.
 
-* **ChatGPT & The Validation Trap:** Modern AI often defaults to supportive agreement, failing to challenge flawed assumptions or point out negative patterns. It tells us we're right, even when our results say otherwise.
-* **Lack of Objective Feedback:** Without a mentor, it's hard to get an unbiased view of our habits, blind spots, and recurring mistakes (hello, tutorial hell!).
-* **The Illusion of Progress:** We feel busy – configuring tools, starting new courses, refactoring endlessly – but aren't actually *shipping* consistently.
-* **Inaccessible Mentorship:** Real, experienced mentors are invaluable but often out of reach due to cost or availability.
+## 🎯 The Problem: Why Founders Get Stuck
 
-## ✨ The Reflog Solution: Data-Driven Honesty & Accountability
+  * **AI Validation Trap:** Modern AI often defaults to supportive agreement, failing to challenge flawed strategies or point out when you're avoiding the hard work (sales calls, customer discovery, tough pivots).
+  * **Lack of Objective Feedback:** Without an experienced advisor, it's hard to get an unbiased view of whether you're chasing vanity metrics, building features nobody wants, or simply lying to yourself about priorities.
+  * **The Illusion of Progress:** We feel busy – tweaking products, reading advice, attending founder events – but aren't actually executing on what moves the needle: revenue, retention, real customer validation.
+  * **Inaccessible Advisorship:** Real, experienced advisors cost $5-10K/month and meet quarterly. Most founders can't afford this when they need it most.
 
-Reflog tackles this by focusing on your *actions* recorded in Git:
+## ✨ The reflog Solution: Data-Driven Honesty & Strategic Accountability
 
-* ✅ **Analyzes Your Git History:** Connects to GitHub to examine commit frequency, repository activity, project lifecycles, and language usage patterns.
-* ✅ **Identifies Real Patterns:** Uses a multi-agent AI system (Analyst, Psychologist, Strategist) to spot concrete behaviors like starting projects but not finishing, inconsistent activity ("yo-yo coding"), or potential "shiny object syndrome."
-* ✅ **Enforces Accountability:** Daily check-ins demand specific, *shippable* commitments. Reflog tracks your follow-through based on your input. No vague goals allowed.
-* ✅ **Delivers Unfiltered Insights:** Provides feedback derived from *your data* and debated by multiple AI perspectives. It's designed to challenge, not just confirm.
+**reflog** tackles this by focusing on your actions recorded in business metrics:
 
-## 🏗️ How Reflog is Built (Current Tech)
+  * ✅ **Tracks Your Business Reality:** Monitors MRR, users, runway, burn rate, and custom metrics that actually matter to your business model.
+  * ✅ **Identifies Real Patterns:** Uses a multi-agent AI system (Strategist, Market Realist, Execution Enforcer) to spot concrete behaviors like avoiding sales calls, chasing features over distribution, or saying "growth is the priority" for 6 weeks while revenue stays flat.
+  * ✅ **Enforces Strategic Accountability:** Weekly reviews demand specific, measurable progress. **reflog** tracks what you *say* you'll focus on vs. where you *actually* spend time. No vague goals allowed.
+  * ✅ **Delivers Unfiltered Insights:** Provides feedback derived from your data and debated by multiple AI perspectives. It's designed to challenge your assumptions, not confirm them.
 
-### Multi-Agent AI System (CrewAI)
+## 🧭 Why "reflog"?
 
-1.  **The Analyst:** Extracts objective metrics and facts from GitHub data.
-2.  **The Psychologist:** Identifies potential behavioral patterns (procrastination, perfectionism) based on the data.
-3.  **The Strategist:** Creates specific, actionable feedback and suggestions based on the analysis.
+In Git, `git reflog` is a safety net. It's the "reference log" that tracks every move you make, every commit, every reset, every branch switch. It's not the clean, curated history of `git log`; it's the **brutally honest, complete history** of what *actually* happened.
+
+Founders need a `reflog` for their business.
+
+We all have a "pitch deck" history (our `git log`)—the clean story we tell investors. But **reflog** is your business's `reflog`:
+
+  * **It tracks your decisions:** Every "commit" (weekly review), every "branch" (new strategy), and every "reset" (pivot).
+  * **It reveals patterns:** It shows you when you've been "stuck" in a detached HEAD state, chasing the same idea in circles.
+  * **It's your objective mirror:** The reflog doesn't judge. It just records. It's the ultimate tool for accountability, allowing you to look back at the *real* history to understand why you are where you are.
+
+**reflog** is your AI advisory board that helps you read—and learn from—your own business's reference log.
+
+## 🏗️ How reflog is Built
+
+### Multi-Agent AI Advisory System (CrewAI)
+
+  * **The Business Strategist:** Analyzes decisions through the lens of revenue, growth, and business model fundamentals. Hates "founder theater."
+  * **The Market Realist:** Grounds your optimism in competitive dynamics and market reality. Spots delusion patterns before they become fatal.
+  * **The Execution Enforcer:** Ensures you're *actually* doing the high-impact work, not just planning it. Allergic to analysis paralysis.
 
 ### Technology Stack
 
-* **Backend:** FastAPI | CrewAI | Groq (Llama 3 Inference) | SQLAlchemy (SQLite/PostgreSQL)
-* **Frontend:** Next.js 14 | TypeScript | Tailwind CSS (Reflog Palette: `#000000`, `#242424`, `#FBFAEE`, `#933DC9`, `#53118F`)
-* **AI:** Fast multi-agent deliberation via Groq API.
-* **Data:** Local-first storage (SQLite), portable.
+  * **Backend:** FastAPI | CrewAI | Groq (Llama 3.3 70B) | SQLAlchemy (PostgreSQL)
+  * **Frontend:** Next.js 14 | TypeScript | Tailwind CSS (Reflog Palette: `#F59E0B`, `#10B981`, `#EF4444`)
+  * **AI:** Fast multi-agent strategic deliberation via Groq API.
+  * **Data:** Secure PostgreSQL storage, self-hostable.
 
-## 📖 How Reflog Works *Right Now*
+## 📖 How reflog Works
 
-1.  **Connect GitHub:** Securely link your account. Reflog performs an initial analysis based on your public/private (if token allows) repo metadata and activity.
-2.  **Get Your Baseline:** Receive the first AI-driven assessment of your development patterns, highlighting potential strengths and blind spots.
-3.  **Daily Check-in:**
-    * **Morning:** Log energy, state what you're avoiding, and define *one concrete thing you will ship today*.
-    * **Evening (Optional):** Record whether you shipped the commitment. If not, state the reason (Reflog tracks excuse patterns).
-4.  **Review Insights & Chat:** Get AI analysis on your check-ins and progress. Use the chat feature to ask specific questions and receive deliberated answers based on your context.
-5.  **Log Decisions:** Use the dedicated log to track significant career or project choices and get AI analysis on them.
-6.  **Monitor Your Dashboard:** Visualize your consistency, success rate, detected patterns, and recent AI feedback.
+1.  **Onboard Your Business:** Tell **reflog** what you're building, your current stage, primary metrics (MRR, users, etc.), and biggest challenge.
+2.  **Get Your Baseline:** Receive the first AI-driven strategic assessment highlighting potential blind spots and execution gaps.
+3.  **Weekly Strategic Review:**
+      * *Wins:* What actually shipped/closed/launched this week?
+      * *Metrics:* MRR, users, runway (with context for changes)
+      * *Biggest Blocker:* What's *actually* stopping progress?
+      * *What You're Avoiding:* The hard conversation or task you keep postponing
+      * *Next Week's Focus:* ONE thing that will move the needle
+4.  **Daily Check-ins (Optional):** Quick energy level + today's needle-moving task
+5.  **Time Allocation Tracking:** Log where your hours actually go (product vs. sales vs. ops). **reflog** compares to your stated priorities.
+6.  **Decision & Strategy Log:** Track major business decisions, pivots, and strategic shifts. Get AI analysis on alignment with your goals and market reality.
+7.  **Review AI Insights & Chat:** Get strategic analysis on your execution patterns. Use chat to pressure-test decisions and receive multi-agent perspectives.
+8.  **Monitor Your Dashboard:** Visualize metrics, runway, time allocation vs. priorities, and recent AI strategic feedback.
 
-## 📊 Current Features (MVP Focused on Developer Accountability)
+## 📊 Current Features (MVP Plan)
 
-* [x] GitHub profile analysis (metadata, activity patterns).
-* [x] Multi-agent AI deliberation for feedback generation.
-* [x] Daily check-in system for setting shippable goals.
-* [x] Commitment tracking & success rate visualization.
-* [x] Detection of patterns (e.g., tutorial hell, inconsistency).
-* [x] Brutally honest, data-grounded feedback.
-* [x] Interactive dashboard with key metrics.
-* [x] AI Chat interface for contextual Q&A.
-* [x] Life Decision Log with AI analysis.
+  * Business metrics tracking (MRR, users, runway, burn rate, custom metrics)
+  * Multi-agent AI strategic deliberation
+  * Weekly strategic review system
+  * Time allocation tracking & analysis (stated vs. actual priorities)
+  * Pattern detection (avoiding sales, vanity metrics, building in vacuum)
+  * Brutally honest, data-grounded strategic feedback
+  * Interactive founder dashboard with key business metrics
+  * AI Chat interface for strategic pressure-testing
+  * Decision & Strategy Log with AI analysis
+  * OKR/Goal tracking with AI validation
 
-## 🌱 Future Vision: Towards a Personal Advisory Board
+## 🌱 Future Vision: Your Personal Advisory Board
 
-While the MVP delivers tangible value for developer accountability *today*, the long-term vision is much broader:
+While the MVP delivers tangible value for founder accountability today, the long-term vision is much broader:
 
-Reflog aims to evolve into an integrated AI mentor – your personal advisory board. Imagine it connecting seamlessly with your Notion, calendar, project management tools, and more, providing holistic, context-aware guidance across different facets of your professional life. Today's focus on coding habits is the essential first step on that journey.
+**reflog** aims to evolve into an integrated AI advisory board – your personal strategic council. Imagine it connecting seamlessly with Stripe (revenue data), your CRM (customer conversations), calendar (time allocation), and analytics tools, providing holistic, context-aware strategic guidance. Today's focus on core business execution is the essential first step on that journey.
 
-## 📚 API Overview (Current)
-
-*(This section details the existing API for technical users)*
-
-The backend provides a FastAPI interface.
-
-### Base URL
-`http://localhost:8000` (when running locally)
-
-### Core Endpoints
-* `POST /users`
-* `POST /analyze-github/{github_username}`
-* `POST /checkins/{github_username}`
-* `POST /commitments/{checkin_id}/review`
-* `GET /dashboard/{github_username}`
-* `POST /chat/{github_username}`
-* `POST /life-decisions/{github_username}`
-* `GET /life-decisions/{github_username}`
-
-*Full interactive docs available via `/docs` endpoint when running.*
-
-## 🔒 Privacy & Data
-
-* **Local Data:** Your check-ins and analysis insights are stored locally (SQLite default).
-* **No Data Selling:** Your personal data is not for sale. Period.
-* **GitHub Scan:** Analysis focuses on metadata and activity patterns. Code content is not stored.
-* **Open Source:** Verify the code yourself.
-* **Self-Hostable:** Run it entirely under your control.
 
 ## 🤔 FAQ
 
-* **How is this better than asking ChatGPT for advice?**
-    Reflog uses *your actual GitHub data and check-in history* as context. ChatGPT often validates based only on what you tell it, lacking the objective grounding in your real-world actions. Reflog is designed to challenge your assumptions with data.
-* **Is my GitHub data safe?**
-    Yes. Analysis uses the official GitHub API for metadata and activity. Code isn't stored. Insights derived are stored locally (or where you host it).
-* **Why Groq for AI?**
-    Speed. Fast inference allows the multi-agent deliberation to be near real-time.
-* **Will this *really* make me ship more?**
-    It provides the structure, reflection, and accountability often missing. If you engage honestly with the check-ins and feedback, it highlights the friction points and patterns preventing you from shipping. It's a tool to empower *you* to change.
+**How is this better than asking ChatGPT for strategic advice?**
+**reflog** uses your *actual business metrics*, *weekly reviews*, and *time allocation* as context. ChatGPT often validates based only on what you tell it in the moment, lacking the objective grounding in your real-world execution patterns. **reflog** is designed to challenge your assumptions with data.
 
-## 📣 Feedback & Contribution
+**Will this really help me execute better?**
+It provides the structure, reflection, and accountability often missing for solo founders and small teams. If you engage honestly with the weekly reviews and actually track your metrics, it highlights the gaps between what you *say* and what you *do*. It's a tool to empower you to change behavior patterns.
 
-This is actively developed based on a real need. Your feedback is crucial.
+**What if I don't have revenue yet?**
+Perfect. Track what matters at your stage: user signups, engagement rate, customer discovery calls completed, waitlist growth. **reflog** adapts to your business model and stage.
 
-* **Issues & Ideas:** [github.com/rasinmuhammed/reflog-ai-mentor/issues](https://github.com/rasinmuhammed/reflog-ai-mentor/issues)
-* **Discussions:** [github.com/rasinmuhammed/reflog-ai-mentor/discussions](https://github.com/rasinmuhammed/reflog-ai-mentor/discussions)
-* **Contact:** rasinbinabdulla@gmail.com | [@rasinmuhammedx on X/Twitter](https://twitter.com/rasinmuhammedx)
 
-## 📜 License
+### ⭐ Star this repo if you:
 
-MIT License - see [LICENSE.md](LICENSE.md).
+  * Are tired of AI simply agreeing with your strategy.
+  * Suspect you're stuck in patterns but can't quite see them.
+  * Believe that real growth comes from confronting business reality.
+  * Want a tool that pushes you to execute, not just plan.
+  * Needed an advisor, so you appreciate someone building this.
 
-## 🙏 Acknowledgments
-
-* **CrewAI, Groq, FastAPI, Next.js:** The tech enabling this.
-* **GitHub API:** The source of truth.
-
-## 🚨 Expect Honesty
-
-Reflog prioritizes objective, data-driven feedback over feel-good validation. It's built to challenge and provoke reflection. Be prepared for insights that might be uncomfortable but ultimately constructive.
-
----
-
-⭐ **Star this repo if you:**
-
-* Are tired of AI simply agreeing with you.
-* Suspect you're stuck in patterns but can't quite pinpoint them.
-* Believe that real growth comes from confronting reality.
-* Want a tool that pushes you to *ship*, not just *work*.
-* Needed a mentor, so you appreciate someone building one.
-
-Let's use data to build better habits. 🚀
+**Let's use data to build better businesses. 🚀**
