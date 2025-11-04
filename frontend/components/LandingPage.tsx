@@ -116,18 +116,17 @@ export default function LandingPage() {
               <span className="font-medium text-[#C488F8]">AI Mentorship Driven by Your Data</span>
             </div>
 
-            {/* Main Headline --- Changed --- */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight tracking-tight">
-              <span className="bg-gradient-to-r from-[#C488F8] to-[#933DC9] bg-clip-text text-transparent"> {/* Lighter Orchid to Orchid */}
-                Stop Guessing.
+              <span className="bg-gradient-to-r from-[#C488F8] to-[#933DC9] bg-clip-text text-transparent">
+                Stop Fooling Yourself.
               </span>
               <br />
-              <span className="text-[#FBFAEE]">Start Growing.</span>
+              <span className="text-[#FBFAEE]">Start Building a Real Business.</span>
             </h1>
 
-            {/* Sub-headline --- Changed --- */}
+            {/* Sub-headline */}
             <p className="text-lg lg:text-xl text-[#FBFAEE]/80 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Reflog is your personal AI mentor. It analyzes your Git history and daily progress to give the brutally honest, data-driven feedback you need to master your craft.
+              Track what actually matters. Get AI feedback that won't let you bullshit. Weekly accountability. Data-driven reality checks.
             </p>
 
             {/* CTA Buttons */}

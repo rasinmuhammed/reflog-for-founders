@@ -496,3 +496,131 @@ class SageMentorCrew:
                 })
         
         return actions[:3]
+    
+    def generate_founder_insights(
+        self,
+        business_stage: str,
+        primary_goal: str,
+        biggest_challenge: str,
+        accountability_style: str
+    ) -> Dict:
+        """Generate initial insights for founder based on onboarding"""
+        
+        insights_task = Task(
+            description=f"""Analyze this founder's profile and provide strategic guidance:
+            
+            Business Stage: {business_stage}
+            Primary Goal: {primary_goal}
+            Biggest Challenge: {biggest_challenge}
+            Preferred Accountability Style: {accountability_style}
+            
+            Your job:
+            1. Assess if their goal aligns with their stage
+            2. Identify potential blind spots for their stage
+            3. Provide 3 specific, actionable recommendations
+            4. Set expectations for what "success" looks like at their stage
+            5. Warn about common pitfalls for founders at this stage
+            
+            Tailor your tone to their accountability style:
+            - "gentle": Supportive but honest
+            - "balanced": Direct with empathy
+            - "intense": Brutally honest, no sugar-coating
+            
+            Be specific. Use their exact challenge and goal in your advice.
+            """,
+            agent=self.strategist,
+            expected_output="Strategic founder guidance with specific actions"
+        )
+        
+        crew = Crew(
+            agents=[self.strategist],
+            tasks=[insights_task],
+            process=Process.sequential,
+            verbose=False
+        )
+        
+        result = crew.kickoff()
+        
+        return {
+            "advice": str(result),
+            "recommendations": self._extract_actions(str(result)),
+            "insights": self._extract_key_points(str(result))
+        }
+
+
+    def analyze_founder_checkin(
+        self,
+        checkin_data: Dict,
+        user_context: Dict,
+        business_metrics: Dict
+    ) -> Dict:
+        """Analyze founder check-in with business context"""
+        
+        analysis_task = Task(
+            description=f"""Analyze this founder's check-in:
+            
+            Check-in Data:
+            - Energy: {checkin_data.get('energy_level')}/10
+            - Avoiding: {checkin_data.get('avoiding_what')}
+            - Commitment: {checkin_data.get('commitment')}
+            - Revenue Update: {checkin_data.get('revenue_update', 'Not provided')}
+            - Customer Wins: {checkin_data.get('customer_wins', 'None mentioned')}
+            - Blockers: {checkin_data.get('blockers', 'None mentioned')}
+            
+            Founder Context:
+            - Business Stage: {user_context.get('business_stage')}
+            - Primary Goal: {user_context.get('primary_goal')}
+            - Accountability Style: {user_context.get('accountability_style')}
+            
+            Recent Business Metrics:
+            {json.dumps(business_metrics, indent=2)}
+            
+            Your job:
+            1. Is their commitment aligned with their primary goal?
+            2. Are they avoiding the RIGHT things or procrastinating?
+            3. How does their energy level relate to their blockers?
+            4. What's the gap between their revenue talk and their actions?
+            5. One specific question they need to answer honestly
+            
+            Match the tone to their accountability style.
+            Reference their specific metrics and goals.
+            """,
+            agent=self.psychologist,
+            expected_output="Founder-focused check-in analysis"
+        )
+        
+        crew = Crew(
+            agents=[self.psychologist],
+            tasks=[analysis_task],
+            process=Process.sequential,
+            verbose=False
+        )
+        
+        result = crew.kickoff()
+        
+        return {
+            "analysis": str(result),
+            "alignment_score": self._calculate_alignment(checkin_data, user_context)
+        }
+
+
+    def _calculate_alignment(self, checkin_data: Dict, user_context: Dict) -> int:
+        """Calculate how well commitment aligns with goals (1-10)"""
+        # Simple heuristic - can be enhanced
+        commitment = checkin_data.get('commitment', '').lower()
+        goal = user_context.get('primary_goal', '').lower()
+        
+        # Check for keyword overlap
+        goal_keywords = set(goal.split())
+        commitment_keywords = set(commitment.split())
+        overlap = len(goal_keywords.intersection(commitment_keywords))
+        
+        # Base score on overlap and commitment specificity
+        if overlap > 2 and len(commitment) > 50:
+            return 8
+        elif overlap > 0 and len(commitment) > 30:
+            return 6
+        elif len(commitment) > 20:
+            return 4
+        else:
+            return 2

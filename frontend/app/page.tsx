@@ -3,7 +3,7 @@
 import { useUser } from '@clerk/nextjs'
 import { useState, useEffect } from 'react'
 import Dashboard from '../components/Dashboard'
-import Onboarding from '../components/Onboarding'
+import FounderOnboarding from '../components/FounderOnboarding'
 import LandingPage from '../components/LandingPage'
 import { Loader2 } from 'lucide-react'
 
@@ -61,7 +61,7 @@ export default function Home() {
   if (!isOnboarded) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <Onboarding onComplete={handleOnboardingComplete} />
+        <FounderOnboarding onComplete={handleOnboardingComplete} />
       </main>
     )
   }

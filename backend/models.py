@@ -10,10 +10,20 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    github_username = Column(String(255), unique=True, index=True)
-    email = Column(String(255), unique=True, index=True, nullable=True)
+    github_username = Column(String(255), unique=True, index=True, nullable=True)  # Now optional
+    email = Column(String(255), unique=True, index=True)
+    full_name = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     onboarding_complete = Column(Boolean, default=False)
+    
+    # Founder-specific fields
+    business_stage = Column(String(100), nullable=True)  # idea, mvp, early_revenue, scaling, etc.
+    primary_goal = Column(Text, nullable=True)
+    check_in_frequency = Column(String(50), default='daily')  # daily, weekly, custom
+    accountability_style = Column(String(50), default='balanced')  # gentle, balanced, intense
+    key_metrics = Column(JSON, nullable=True)  # List of metrics they want to track
+    work_preferences = Column(JSON, nullable=True)  # Work style, challenges, etc.
+
 
 class CheckIn(Base):
     __tablename__ = "checkins"
@@ -21,14 +31,19 @@ class CheckIn(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    energy_level = Column(Integer)  # 1-10
+    energy_level = Column(Integer)
     avoiding_what = Column(Text)
     commitment = Column(Text)
     shipped = Column(Boolean, nullable=True)
     excuse = Column(Text, nullable=True)
     mood = Column(String(100), nullable=True)
     ai_analysis = Column(Text, nullable=True)
-    agent_debate = Column(JSON, nullable=True)  # PostgreSQL JSON type
+    agent_debate = Column(JSON, nullable=True)
+    
+    # Founder-specific fields
+    revenue_update = Column(Float, nullable=True)
+    customer_wins = Column(Text, nullable=True)
+    blockers = Column(Text, nullable=True)
 
 class GitHubAnalysis(Base):
     __tablename__ = "github_analysis"
@@ -39,8 +54,8 @@ class GitHubAnalysis(Base):
     total_repos = Column(Integer)
     active_repos = Column(Integer)
     total_commits = Column(Integer)
-    languages = Column(JSON)  # PostgreSQL JSON type
-    patterns = Column(JSON)  # PostgreSQL JSON type
+    languages = Column(JSON)
+    patterns = Column(JSON)
     analyzed_at = Column(DateTime, default=datetime.utcnow)
 
 class AgentAdvice(Base):
@@ -50,7 +65,7 @@ class AgentAdvice(Base):
     user_id = Column(Integer, index=True)
     agent_name = Column(String(100))
     advice = Column(Text)
-    evidence = Column(JSON)  # PostgreSQL JSON type
+    evidence = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
     followed = Column(Boolean, nullable=True)
     outcome = Column(Text, nullable=True)
@@ -68,16 +83,48 @@ class LifeEvent(Base):
     time_horizon = Column(String(50), nullable=True)
     outcome = Column(Text, nullable=True)
 
-# Pydantic Schemas (unchanged)
+# Pydantic Schemas
 class UserCreate(BaseModel):
-    github_username: str
-    email: Optional[str] = None
+    email: str
+    full_name: Optional[str] = None
+    github_username: Optional[str] = None
+
+class OnboardingData(BaseModel):
+    business_stage: str
+    primary_goal: str
+    check_in_frequency: str
+    accountability_style: str
+    key_metrics: List[str]
+    biggest_challenge: str
+    work_style: str
+    github_username: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: int
-    github_username: str
-    email: Optional[str]
+    email: str
+    full_name: Optional[str]
+    github_username: Optional[str]
     onboarding_complete: bool
+    business_stage: Optional[str]
+    primary_goal: Optional[str]
+    check_in_frequency: str
+    accountability_style: str
+    
+    class Config:
+        from_attributes = True
+
+class BusinessMetricCreate(BaseModel):
+    metric_type: str
+    value: float
+    unit: Optional[str] = None
+    context: Optional[Dict] = None
+
+class BusinessMetricResponse(BaseModel):
+    id: int
+    metric_type: str
+    value: float
+    unit: Optional[str]
+    timestamp: datetime
     
     class Config:
         from_attributes = True
@@ -87,6 +134,9 @@ class CheckInCreate(BaseModel):
     avoiding_what: str
     commitment: str
     mood: Optional[str] = None
+    revenue_update: Optional[float] = None
+    customer_wins: Optional[str] = None
+    blockers: Optional[str] = None
 
 class CheckInUpdate(BaseModel):
     shipped: bool
@@ -103,6 +153,9 @@ class CheckInResponse(BaseModel):
     mood: Optional[str]
     ai_analysis: Optional[str]
     agent_debate: Optional[Dict]
+    revenue_update: Optional[float]
+    customer_wins: Optional[str]
+    blockers: Optional[str]
     
     class Config:
         from_attributes = True

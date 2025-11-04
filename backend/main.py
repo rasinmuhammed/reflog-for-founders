@@ -7,7 +7,7 @@ from database import engine, get_db, init_db
 from models import (
     UserCreate, UserResponse, CheckInCreate, CheckInUpdate, CheckInResponse,
     AgentAdviceResponse, GitHubAnalysisResponse, ChatMessage,
-    LifeDecisionCreate, LifeDecisionResponse
+    LifeDecisionCreate, LifeDecisionResponse, OnboardingData
 )
 from github_integration import GitHubAnalyzer
 from crew import SageMentorCrew
@@ -15,6 +15,14 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel
 from datetime import datetime, timedelta, time
 from typing import Optional
+from business_models import (
+    BusinessMetric, WeeklyReview, OKR, TimeAllocation,
+    BusinessMetricCreate, BusinessMetricResponse,
+    WeeklyReviewCreate, WeeklyReviewResponse,
+    OKRCreate, OKRResponse,
+    TimeAllocationCreate, TimeAllocationResponse
+)
+from founder_agents import get_founder_agents
 
 init_db()
 
@@ -1200,6 +1208,597 @@ def get_weekly_summary(
     return {
         "weeks": summary,
         "total_weeks": len(summary)
+    }
+
+# ==================== BUSINESS METRICS ====================
+
+@app.post("/business-metrics/{username}", response_model=BusinessMetricResponse)
+def add_business_metric(
+    username: str, 
+    metric: BusinessMetricCreate, 
+    db: Session = Depends(get_db)
+):
+    """Log a business metric (revenue, users, MRR, etc.)"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    new_metric = BusinessMetric(
+        user_id=user.id,
+        metric_type=metric.metric_type,
+        value=metric.value,
+        target=metric.target,
+        notes=metric.notes
+    )
+    db.add(new_metric)
+    db.commit()
+    db.refresh(new_metric)
+    
+    return new_metric
+
+
+@app.get("/business-metrics/{username}")
+def get_business_metrics(
+    username: str, 
+    days: int = 90, 
+    db: Session = Depends(get_db)
+):
+    """Get historical business metrics with trend analysis"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    since = datetime.now() - timedelta(days=days)
+    
+    metrics = db.query(BusinessMetric).filter(
+        BusinessMetric.user_id == user.id,
+        BusinessMetric.date >= since
+    ).order_by(BusinessMetric.date.desc()).all()
+    
+    # Group by metric type and calculate trends
+    metrics_by_type = {}
+    for metric in metrics:
+        if metric.metric_type not in metrics_by_type:
+            metrics_by_type[metric.metric_type] = []
+        metrics_by_type[metric.metric_type].append({
+            "value": metric.value,
+            "target": metric.target,
+            "date": metric.date.isoformat(),
+            "notes": metric.notes
+        })
+    
+    return {
+        "period_days": days,
+        "metrics": metrics_by_type
+    }
+
+
+# ==================== WEEKLY REVIEWS ====================
+
+@app.post("/weekly-review/{username}", response_model=WeeklyReviewResponse)
+async def create_weekly_review(
+    username: str, 
+    review: WeeklyReviewCreate, 
+    db: Session = Depends(get_db)
+):
+    """Submit weekly business review, get AI feedback"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get start of current week (Monday)
+    today = datetime.now()
+    week_start = today - timedelta(days=today.weekday())
+    
+    # Check if review already exists for this week
+    existing = db.query(WeeklyReview).filter(
+        WeeklyReview.user_id == user.id,
+        WeeklyReview.week_start >= week_start
+    ).first()
+    
+    if existing:
+        raise HTTPException(
+            status_code=400, 
+            detail="Weekly review already submitted for this week"
+        )
+    
+    # Get founder agents
+    from founder_agents import business_strategist, market_realist, execution_enforcer
+    from crewai import Task, Crew, Process
+    
+    # Analyze wins vs. stated goals
+    review_task = Task(
+        description=f"""Analyze this founder's weekly review:
+        
+        Wins: {review.wins}
+        Key Metrics: {review.key_metrics}
+        Biggest Blocker: {review.biggest_blocker}
+        What They're Avoiding: {review.what_avoiding}
+        Next Week Focus: {review.next_week_focus}
+        
+        Your job:
+        1. Are the wins actually impactful or just busy work?
+        2. Do the metrics show real progress toward business goals?
+        3. Is the "biggest blocker" real or an excuse?
+        4. What pattern do you see in what they're avoiding?
+        5. Is their next week focus specific and measurable enough?
+        6. What's the ONE thing they should actually focus on?
+        
+        Be brutally honest. Call out founder theater.""",
+        agent=business_strategist,
+        expected_output="Honest analysis with specific actionable feedback"
+    )
+    
+    crew = Crew(
+        agents=[business_strategist, market_realist, execution_enforcer],
+        tasks=[review_task],
+        process=Process.sequential,
+        verbose=False
+    )
+    
+    result = crew.kickoff()
+    ai_analysis = str(result)
+    
+    # Create review
+    new_review = WeeklyReview(
+        user_id=user.id,
+        week_start=week_start,
+        wins=review.wins,
+        key_metrics=review.key_metrics,
+        biggest_blocker=review.biggest_blocker,
+        what_avoiding=review.what_avoiding,
+        next_week_focus=review.next_week_focus,
+        ai_analysis=ai_analysis
+    )
+    db.add(new_review)
+    db.commit()
+    db.refresh(new_review)
+    
+    return new_review
+
+
+@app.get("/weekly-reviews/{username}")
+def get_weekly_reviews(
+    username: str, 
+    limit: int = 12, 
+    db: Session = Depends(get_db)
+):
+    """Get past weekly reviews to spot patterns"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    reviews = db.query(WeeklyReview).filter(
+        WeeklyReview.user_id == user.id
+    ).order_by(WeeklyReview.week_start.desc()).limit(limit).all()
+    
+    return reviews
+
+
+# ==================== OKRs ====================
+
+@app.post("/okrs/{username}", response_model=OKRResponse)
+def create_okr(
+    username: str, 
+    okr: OKRCreate, 
+    db: Session = Depends(get_db)
+):
+    """Set quarterly OKRs with AI validation"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # AI validates: Is this measurable? Ambitious but achievable?
+    from founder_agents import business_strategist
+    from crewai import Task, Crew, Process
+    
+    validation_task = Task(
+        description=f"""Validate this OKR:
+        
+        Quarter: {okr.quarter}
+        Objective: {okr.objective}
+        Key Results: {okr.key_results}
+        
+        Your job:
+        1. Is each key result actually measurable?
+        2. Are the targets ambitious but achievable?
+        3. Do these align with building a real business?
+        4. What's missing or unrealistic?
+        
+        Provide brief validation feedback.""",
+        agent=business_strategist,
+        expected_output="Validation feedback on the OKR"
+    )
+    
+    crew = Crew(
+        agents=[business_strategist],
+        tasks=[validation_task],
+        process=Process.sequential,
+        verbose=False
+    )
+    
+    result = crew.kickoff()
+    
+    new_okr = OKR(
+        user_id=user.id,
+        quarter=okr.quarter,
+        objective=okr.objective,
+        key_results=okr.key_results,
+        progress_updates=[]
+    )
+    db.add(new_okr)
+    db.commit()
+    db.refresh(new_okr)
+    
+    return new_okr
+
+
+@app.get("/okrs/{username}")
+def get_okrs(
+    username: str,
+    db: Session = Depends(get_db)
+):
+    """Get all OKRs for a user"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    okrs = db.query(OKR).filter(
+        OKR.user_id == user.id
+    ).order_by(OKR.quarter.desc()).all()
+    
+    return okrs
+
+
+# ==================== TIME ALLOCATION ====================
+
+@app.post("/time-allocation/{username}", response_model=TimeAllocationResponse)
+def log_time_allocation(
+    username: str, 
+    allocation: TimeAllocationCreate, 
+    db: Session = Depends(get_db)
+):
+    """Log how time was spent (product vs. sales vs. ops)"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    new_allocation = TimeAllocation(
+        user_id=user.id,
+        category=allocation.category,
+        hours=allocation.hours,
+        notes=allocation.notes
+    )
+    db.add(new_allocation)
+    db.commit()
+    db.refresh(new_allocation)
+    
+    return new_allocation
+
+
+@app.get("/time-analysis/{username}")
+def analyze_time_allocation(
+    username: str, 
+    weeks: int = 4, 
+    db: Session = Depends(get_db)
+):
+    """AI analysis: Where you SAID you'd focus vs. where you ACTUALLY spent time"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    since = datetime.now() - timedelta(weeks=weeks)
+    
+    allocations = db.query(TimeAllocation).filter(
+        TimeAllocation.user_id == user.id,
+        TimeAllocation.date >= since
+    ).all()
+    
+    # Group by category
+    time_by_category = {}
+    for allocation in allocations:
+        if allocation.category not in time_by_category:
+            time_by_category[allocation.category] = 0
+        time_by_category[allocation.category] += allocation.hours
+    
+    # Get stated priorities from recent reviews
+    reviews = db.query(WeeklyReview).filter(
+        WeeklyReview.user_id == user.id,
+        WeeklyReview.week_start >= since
+    ).order_by(WeeklyReview.week_start.desc()).all()
+    
+    stated_priorities = [r.next_week_focus for r in reviews if r.next_week_focus]
+    
+    return {
+        "weeks_analyzed": weeks,
+        "time_by_category": time_by_category,
+        "stated_priorities": stated_priorities,
+        "ai_insight": f"You spent {time_by_category} hours. Compare this to your stated priorities: {stated_priorities}"
+    }
+
+
+# ==================== MODIFIED DASHBOARD ====================
+
+@app.get("/dashboard-founder/{username}")
+def get_founder_dashboard(username: str, db: Session = Depends(get_db)):
+    """Return founder-specific dashboard data"""
+    user = db.query(models.User).filter(
+        models.User.github_username == username
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get recent metrics
+    recent_metrics = db.query(BusinessMetric).filter(
+        BusinessMetric.user_id == user.id
+    ).order_by(BusinessMetric.date.desc()).limit(10).all()
+    
+    # Get current MRR and users
+    current_mrr = next((m.value for m in recent_metrics if m.metric_type == 'mrr'), 0)
+    current_users = next((m.value for m in recent_metrics if m.metric_type == 'users'), 0)
+    
+    # Get most recent review
+    recent_review = db.query(WeeklyReview).filter(
+        WeeklyReview.user_id == user.id
+    ).order_by(WeeklyReview.week_start.desc()).first()
+    
+    return {
+        "user": {
+            "username": user.github_username,
+            "member_since": user.created_at.strftime("%Y-%m-%d")
+        },
+        "metrics": {
+            "current_mrr": current_mrr,
+            "target_mrr": 10000,  # Get from OKRs or user settings
+            "users": current_users,
+            "runway_months": 8,  # Calculate from burn rate
+            "burn_rate": 12000  # Get from metrics
+        },
+        "this_week": {
+            "focus": recent_review.next_week_focus if recent_review else "Not set",
+            "progress": "Track via time allocation",
+            "ai_insight": recent_review.ai_analysis if recent_review else None
+        },
+        "recent_reviews": [
+            {
+                "week": r.week_start.strftime("%Y-%m-%d"),
+                "wins": r.wins,
+                "blocker": r.biggest_blocker
+            }
+            for r in db.query(WeeklyReview).filter(
+                WeeklyReview.user_id == user.id
+            ).order_by(WeeklyReview.week_start.desc()).limit(3).all()
+        ]
+    }
+
+@app.post("/users/onboard", response_model=UserResponse)
+def complete_onboarding(
+    onboarding: OnboardingData,
+    email: str,
+    full_name: str = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Complete founder onboarding with business details
+    """
+    # Get or create user
+    user = db.query(models.User).filter(models.User.email == email).first()
+    
+    if not user:
+        user = models.User(
+            email=email,
+            full_name=full_name,
+            github_username=onboarding.github_username
+        )
+        db.add(user)
+    
+    # Update with onboarding data
+    user.business_stage = onboarding.business_stage
+    user.primary_goal = onboarding.primary_goal
+    user.check_in_frequency = onboarding.check_in_frequency
+    user.accountability_style = onboarding.accountability_style
+    user.key_metrics = {
+        "metrics": onboarding.key_metrics,
+        "configured_at": datetime.now().isoformat()
+    }
+    user.work_preferences = {
+        "biggest_challenge": onboarding.biggest_challenge,
+        "work_style": onboarding.work_style
+    }
+    user.onboarding_complete = True
+    
+    db.commit()
+    db.refresh(user)
+    
+    # Generate initial AI insights based on onboarding
+    initial_insights = sage_crew.generate_founder_insights(
+        business_stage=onboarding.business_stage,
+        primary_goal=onboarding.primary_goal,
+        biggest_challenge=onboarding.biggest_challenge,
+        accountability_style=onboarding.accountability_style
+    )
+    
+    # Store initial advice
+    advice = models.AgentAdvice(
+        user_id=user.id,
+        agent_name="Onboarding Strategist",
+        advice=initial_insights["advice"],
+        evidence={"onboarding_data": onboarding.dict()},
+        interaction_type="onboarding"
+    )
+    db.add(advice)
+    db.commit()
+    
+    return user
+
+
+@app.post("/business-metrics/{email}")
+def track_business_metric(
+    email: str,
+    metric: BusinessMetricCreate,
+    db: Session = Depends(get_db)
+):
+    """Track business metrics"""
+    user = db.query(models.User).filter(models.User.email == email).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    business_metric = models.BusinessMetric(
+        user_id=user.id,
+        metric_type=metric.metric_type,
+        value=metric.value,
+        unit=metric.unit,
+        context=metric.context
+    )
+    db.add(business_metric)
+    db.commit()
+    
+    return {"message": "Metric tracked", "metric_id": business_metric.id}
+
+
+@app.get("/business-metrics/{email}/history")
+def get_metric_history(
+    email: str,
+    metric_type: str = None,
+    days: int = 30,
+    db: Session = Depends(get_db)
+):
+    """Get business metric history"""
+    user = db.query(models.User).filter(models.User.email == email).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    since = datetime.now() - timedelta(days=days)
+    
+    query = db.query(models.BusinessMetric).filter(
+        models.BusinessMetric.user_id == user.id,
+        models.BusinessMetric.timestamp >= since
+    )
+    
+    if metric_type:
+        query = query.filter(models.BusinessMetric.metric_type == metric_type)
+    
+    metrics = query.order_by(models.BusinessMetric.timestamp.desc()).all()
+    
+    return {
+        "metrics": [
+            {
+                "id": m.id,
+                "type": m.metric_type,
+                "value": m.value,
+                "unit": m.unit,
+                "timestamp": m.timestamp.isoformat(),
+                "context": m.context
+            }
+            for m in metrics
+        ]
+    }
+
+
+@app.get("/dashboard-founder/{email}")
+def get_founder_dashboard(email: str, db: Session = Depends(get_db)):
+    """Founder-specific dashboard"""
+    user = db.query(models.User).filter(models.User.email == email).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get recent metrics
+    recent_metrics = db.query(models.BusinessMetric).filter(
+        models.BusinessMetric.user_id == user.id
+    ).order_by(models.BusinessMetric.timestamp.desc()).limit(20).all()
+    
+    # Organize metrics by type
+    metrics_by_type = {}
+    for metric in recent_metrics:
+        if metric.metric_type not in metrics_by_type:
+            metrics_by_type[metric.metric_type] = []
+        metrics_by_type[metric.metric_type].append({
+            "value": metric.value,
+            "unit": metric.unit,
+            "timestamp": metric.timestamp.isoformat()
+        })
+    
+    # Get check-in stats
+    checkins = db.query(models.CheckIn).filter(
+        models.CheckIn.user_id == user.id
+    ).order_by(models.CheckIn.timestamp.desc()).limit(7).all()
+    
+    # Get latest advice
+    latest_advice = db.query(models.AgentAdvice).filter(
+        models.AgentAdvice.user_id == user.id
+    ).order_by(models.AgentAdvice.created_at.desc()).limit(3).all()
+    
+    # GitHub data (optional)
+    github_analysis = None
+    if user.github_username:
+        github_analysis = db.query(models.GitHubAnalysis).filter(
+            models.GitHubAnalysis.user_id == user.id
+        ).order_by(models.GitHubAnalysis.analyzed_at.desc()).first()
+    
+    return {
+        "user": {
+            "email": user.email,
+            "full_name": user.full_name,
+            "business_stage": user.business_stage,
+            "primary_goal": user.primary_goal,
+            "member_since": user.created_at.strftime("%Y-%m-%d"),
+            "check_in_frequency": user.check_in_frequency,
+            "accountability_style": user.accountability_style
+        },
+        "business_metrics": metrics_by_type,
+        "github": {
+            "connected": user.github_username is not None,
+            "data": {
+                "total_repos": github_analysis.total_repos if github_analysis else 0,
+                "active_repos": github_analysis.active_repos if github_analysis else 0,
+                "languages": github_analysis.languages if github_analysis else {},
+                "patterns": github_analysis.patterns if github_analysis else []
+            } if github_analysis else None
+        },
+        "stats": {
+            "total_checkins": len(checkins),
+            "commitments_kept": sum(1 for c in checkins if c.shipped == True),
+            "success_rate": (sum(1 for c in checkins if c.shipped == True) / len(checkins) * 100) if len(checkins) > 0 else 0,
+            "avg_energy": sum(c.energy_level for c in checkins) / len(checkins) if len(checkins) > 0 else 0
+        },
+        "recent_advice": [
+            {
+                "id": a.id,
+                "agent": a.agent_name,
+                "advice": a.advice[:200] + "..." if len(a.advice) > 200 else a.advice,
+                "date": a.created_at.strftime("%Y-%m-%d"),
+                "type": a.interaction_type
+            }
+            for a in latest_advice
+        ]
     }
 
 if __name__ == "__main__":
