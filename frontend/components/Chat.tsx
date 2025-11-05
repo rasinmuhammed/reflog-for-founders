@@ -32,12 +32,12 @@ interface Message {
 }
 
 interface ChatProps {
-  githubUsername: string
+  userIdentifier: string
 }
 
 
 
-export default function Chat({ githubUsername }: ChatProps) {
+export default function Chat({ userIdentifier }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -94,7 +94,7 @@ export default function Chat({ githubUsername }: ChatProps) {
     setLoading(true)
 
     try {
-      const response = await axios.post(`${API_URL}/chat/${githubUsername}`, {
+      const response = await axios.post(`${API_URL}/chat/${userIdentifier}`, {
         message: userMessage
       })
 

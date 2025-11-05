@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useUser } from '@clerk/nextjs'; // 1. Import the useUser hook
 import { 
   Rocket, Target, TrendingUp, Calendar, Shield, Brain,
   ChevronRight, ChevronLeft, Check, Loader2, Sparkles,
@@ -8,6 +9,7 @@ import {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function FounderOnboarding({ onComplete }) {
+  const { user } = useUser(); // 2. Get the currently logged-in user
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,6 +26,7 @@ export default function FounderOnboarding({ onComplete }) {
     githubUsername: ''
   });
 
+  // ... (all your existing definitions for businessStages, accountabilityStyles, etc. remain the same) ...
   const businessStages = [
     { id: 'idea', label: 'Idea Stage', desc: 'Validating concept, no product yet', icon: '💡' },
     { id: 'building_mvp', label: 'Building MVP', desc: 'Creating first version', icon: '🔨' },
@@ -58,11 +61,21 @@ export default function FounderOnboarding({ onComplete }) {
   const handleSubmit = async () => {
     if (!validateCurrentStep()) return;
     
+    // 3. Get the REAL user data from the hook
+    const email = user?.emailAddresses[0]?.emailAddress;
+    const fullName = user?.fullName;
+
+    if (!email) {
+      setError('Could not get user email. Please try logging in again.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/users/onboard?email=user@example.com&full_name=User`, {
+      // 4. Use the REAL email and fullName in the request
+      const response = await fetch(`${API_URL}/users/onboard?email=${encodeURIComponent(email)}&full_name=${encodeURIComponent(fullName || 'User')}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -79,7 +92,8 @@ export default function FounderOnboarding({ onComplete }) {
 
       if (!response.ok) throw new Error('Failed to complete onboarding');
 
-      onComplete('user@example.com');
+      // 5. Pass the REAL email to the onComplete handler
+      onComplete(email);
     } catch (err) {
       setError('Failed to complete onboarding. Please try again.');
       console.error(err);
@@ -120,6 +134,10 @@ export default function FounderOnboarding({ onComplete }) {
 
   return (
     <div className="min-h-screen bg-[#000000] text-[#FBFAEE] flex items-center justify-center p-4">
+      {/* ... (rest of your component's JSX) ... */}
+      
+      {/* (No changes to the JSX structure, only to the logic above) */}
+
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#933DC9]/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#53118F]/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>

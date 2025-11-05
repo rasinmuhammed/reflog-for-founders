@@ -7,36 +7,60 @@ import FounderOnboarding from '../components/FounderOnboarding'
 import LandingPage from '../components/LandingPage'
 import { Loader2 } from 'lucide-react'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
 export default function Home() {
   const { isSignedIn, isLoaded, user } = useUser()
-  const [githubUsername, setGithubUsername] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isOnboarded, setIsOnboarded] = useState(false)
   const [checkingOnboarding, setCheckingOnboarding] = useState(true)
 
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
-      // Check if user has completed onboarding
-      const username = user.unsafeMetadata?.githubUsername as string
-      if (username) {
-        setGithubUsername(username)
-        setIsOnboarded(true)
+      const email = user.emailAddresses?.[0]?.emailAddress
+      if (email) {
+        setUserEmail(email)
+        checkOnboardingStatus(email)
+      } else {
+        setCheckingOnboarding(false)
       }
-      setCheckingOnboarding(false)
     } else if (isLoaded) {
       setCheckingOnboarding(false)
     }
   }, [isLoaded, isSignedIn, user])
 
-  const handleOnboardingComplete = async (username: string) => {
-    // Save GitHub username to Clerk user metadata
+  const checkOnboardingStatus = async (email: string) => {
+    try {
+      // Check if user exists and is onboarded
+      const response = await fetch(`${API_URL}/users/by-email/${encodeURIComponent(email)}`)
+      
+      if (response.ok) {
+        const userData = await response.json()
+        setIsOnboarded(userData.onboarding_complete === true)
+      } else if (response.status === 404) {
+        // User doesn't exist yet, needs onboarding
+        setIsOnboarded(false)
+      }
+    } catch (error) {
+      console.error('Failed to check onboarding status:', error)
+      // On error, assume not onboarded
+      setIsOnboarded(false)
+    } finally {
+      setCheckingOnboarding(false)
+    }
+  }
+
+  const handleOnboardingComplete = async (email: string) => {
+    // Update Clerk metadata
     await user?.update({
       unsafeMetadata: {
         ...user.unsafeMetadata,
-        githubUsername: username
+        onboardingCompleted: true,
+        onboardingDate: new Date().toISOString()
       }
     })
     
-    setGithubUsername(username)
+    setUserEmail(email)
     setIsOnboarded(true)
   }
 
@@ -69,7 +93,7 @@ export default function Home() {
   // Show dashboard if fully onboarded
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Dashboard githubUsername={githubUsername!} />
+      <Dashboard userIdentifier={userEmail!} />
     </main>
   )
 }

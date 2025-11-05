@@ -21,10 +21,10 @@ interface LifeDecision {
 }
 
 interface LifeDecisionsProps {
-  githubUsername: string
+  userIdentifier: string
 }
 
-export default function LifeDecisions({ githubUsername }: LifeDecisionsProps) {
+export default function LifeDecisions({ userIdentifier }: LifeDecisionsProps) {
   const [decisions, setDecisions] = useState<LifeDecision[]>([])
   const [filteredDecisions, setFilteredDecisions] = useState<LifeDecision[]>([])
   const [loading, setLoading] = useState(true)
@@ -45,7 +45,7 @@ export default function LifeDecisions({ githubUsername }: LifeDecisionsProps) {
 
   useEffect(() => {
     loadDecisions()
-  }, [githubUsername])
+  }, [userIdentifier])
 
   useEffect(() => {
     applyFilters()
@@ -55,7 +55,7 @@ export default function LifeDecisions({ githubUsername }: LifeDecisionsProps) {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API_URL}/life-decisions/${githubUsername}`)
+      const response = await axios.get(`${API_URL}/life-decisions/${userIdentifier}`)
       // Sort decisions by timestamp descending (newest first)
       const sortedDecisions = response.data.sort((a: LifeDecision, b: LifeDecision) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -74,7 +74,7 @@ export default function LifeDecisions({ githubUsername }: LifeDecisionsProps) {
     setReanalyzeError('')
     try {
       const response = await axios.post(
-        `${API_URL}/life-decisions/${githubUsername}/${decisionId}/reanalyze`
+        `${API_URL}/life-decisions/${userIdentifier}/${decisionId}/reanalyze`
       )
       if (selectedDecision && selectedDecision.id === decisionId) {
         setSelectedDecision({
@@ -113,7 +113,7 @@ export default function LifeDecisions({ githubUsername }: LifeDecisionsProps) {
     }
     setSubmitting(true)
     try {
-      const response = await axios.post(`${API_URL}/life-decisions/${githubUsername}`, {
+      const response = await axios.post(`${API_URL}/life-decisions/${userIdentifier}`, {
         title,
         description,
         decision_type: decisionType,

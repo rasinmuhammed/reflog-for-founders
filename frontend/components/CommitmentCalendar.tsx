@@ -15,24 +15,24 @@ interface CommitmentDay {
 }
 
 interface CommitmentCalendarProps {
-  githubUsername: string
+  userIdentifier: string
 }
 
-export default function CommitmentCalendar({ githubUsername }: CommitmentCalendarProps) {
+export default function CommitmentCalendar({ userIdentifier }: CommitmentCalendarProps) {
   const [days, setDays] = useState<CommitmentDay[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null); // Added error state
 
   useEffect(() => {
     loadCalendarData()
-  }, [githubUsername])
+  }, [userIdentifier])
 
   const loadCalendarData = async () => {
     setLoading(true);
     setError(null); // Reset error on new load attempt
     try {
       // Fetch last 35 days to potentially fill 5 weeks (7*5)
-      const response = await axios.get(`${API_URL}/checkins/${githubUsername}?limit=35`)
+      const response = await axios.get(`${API_URL}/checkins/${userIdentifier}?limit=35`)
       // Sort data by date ascending to fill calendar correctly
       const sortedData = response.data.sort((a: any, b: any) =>
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()

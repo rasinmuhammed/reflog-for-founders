@@ -50,12 +50,12 @@ interface CommitmentStats {
 
 
 interface CommitmentTrackerProps {
-  githubUsername: string
+  userIdentifier: string
   onReviewComplete?: () => void
 }
 
 export default function CommitmentTracker({
-  githubUsername,
+  userIdentifier,
   onReviewComplete
 }: CommitmentTrackerProps) {
   const [todayCommitment, setTodayCommitment] = useState<TodayCommitment | null>(null)
@@ -75,15 +75,15 @@ export default function CommitmentTracker({
     // Poll every 5 minutes
     const interval = setInterval(loadCommitmentData, 5 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [githubUsername]) // Removed showReviewModal from dependency array
+  }, [userIdentifier]) // Removed showReviewModal from dependency array
 
   const loadCommitmentData = async () => {
     // Keep setLoading true only at the beginning
     // setLoading(true); // Maybe remove this if polling causes flashes
     try {
       const [commitmentRes, statsRes] = await Promise.all([
-        axios.get(`${API_URL}/commitments/${githubUsername}/today`),
-        axios.get(`${API_URL}/commitments/${githubUsername}/stats?days=30`) // Ensure backend provides stats
+        axios.get(`${API_URL}/commitments/${userIdentifier}/today`),
+        axios.get(`${API_URL}/commitments/${userIdentifier}/stats?days=30`) // Ensure backend provides stats
       ])
 
       setTodayCommitment(commitmentRes.data)
@@ -108,7 +108,7 @@ export default function CommitmentTracker({
     // Add loading state for quick commit
     setReviewing(true); // Re-use reviewing state for temporary loading
     try {
-      await axios.post(`${API_URL}/checkins/${githubUsername}`, {
+      await axios.post(`${API_URL}/checkins/${userIdentifier}`, {
         energy_level: 7, // Default energy or make it configurable
         avoiding_what: "Quick commitment - no details",
         commitment: quickCommitment,

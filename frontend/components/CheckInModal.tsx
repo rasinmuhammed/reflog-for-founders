@@ -9,7 +9,7 @@ import MarkdownRenderer from './MarkdownRenderer' // Ensure this uses #FBFAEE te
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 interface CheckInModalProps {
-  githubUsername: string
+  userIdentifier: string
   onClose: () => void
   onComplete: () => void // Called after successful submission and closing
 }
@@ -26,7 +26,7 @@ interface CheckIn {
   ai_analysis: string | null
 }
 
-export default function CheckInModal({ githubUsername, onClose, onComplete }: CheckInModalProps) {
+export default function CheckInModal({ userIdentifier, onClose, onComplete }: CheckInModalProps) {
   const [energyLevel, setEnergyLevel] = useState(5)
   const [avoiding, setAvoiding] = useState('')
   const [commitment, setCommitment] = useState('')
@@ -42,7 +42,7 @@ export default function CheckInModal({ githubUsername, onClose, onComplete }: Ch
   useEffect(() => {
     // Optionally load history immediately if needed, or lazy load on button click
     // loadRecentCheckins();
-  }, [githubUsername])
+  }, [userIdentifier])
 
   const commitmentTemplates = [
     "Complete [feature] by [time]",
@@ -61,7 +61,7 @@ export default function CheckInModal({ githubUsername, onClose, onComplete }: Ch
     setError(null);
     try {
       // Fetch last 7 checkins
-      const response = await axios.get(`${API_URL}/checkins/${githubUsername}?limit=7`)
+      const response = await axios.get(`${API_URL}/checkins/${userIdentifier}?limit=7`)
       // Sort descending (newest first)
       const sorted = response.data.sort((a: CheckIn, b: CheckIn) =>
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -86,7 +86,7 @@ export default function CheckInModal({ githubUsername, onClose, onComplete }: Ch
     setError(null); // Clear previous errors
 
     try {
-      const response = await axios.post(`${API_URL}/checkins/${githubUsername}`, {
+      const response = await axios.post(`${API_URL}/checkins/${userIdentifier}`, {
         energy_level: energyLevel,
         avoiding_what: avoiding,
         commitment: commitment,

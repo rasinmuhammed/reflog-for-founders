@@ -17,12 +17,12 @@ interface ReminderData {
 }
 
 interface NotificationBannerProps {
-  githubUsername: string
+  userIdentifier: string
   onReviewClick: () => void
 }
 
 export default function NotificationBanner({ 
-  githubUsername, 
+  userIdentifier, 
   onReviewClick 
 }: NotificationBannerProps) {
   const [reminder, setReminder] = useState<ReminderData | null>(null)
@@ -35,12 +35,12 @@ export default function NotificationBanner({
     // Check every 5 minutes
     const interval = setInterval(checkReminder, 5 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [githubUsername])
+  }, [userIdentifier])
 
   const checkReminder = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}/commitments/${githubUsername}/reminder-needed`
+        `${API_URL}/commitments/${userIdentifier}/reminder-needed`
       )
       
       if (response.data.needs_reminder && !dismissed) {

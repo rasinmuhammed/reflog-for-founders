@@ -18,10 +18,10 @@ interface Interaction {
 }
 
 interface InteractionHistoryProps {
-  githubUsername: string
+  userIdentifier: string
 }
 
-export default function InteractionHistory({ githubUsername }: InteractionHistoryProps) {
+export default function InteractionHistory({ userIdentifier }: InteractionHistoryProps) {
   const [interactions, setInteractions] = useState<Interaction[]>([])
   const [filteredInteractions, setFilteredInteractions] = useState<Interaction[]>([])
   const [loading, setLoading] = useState(true)
@@ -32,7 +32,7 @@ export default function InteractionHistory({ githubUsername }: InteractionHistor
 
   useEffect(() => {
     loadInteractions()
-  }, [githubUsername])
+  }, [userIdentifier])
 
   useEffect(() => {
     applyFilters()
@@ -42,7 +42,7 @@ export default function InteractionHistory({ githubUsername }: InteractionHistor
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API_URL}/advice/${githubUsername}?limit=50`)
+      const response = await axios.get(`${API_URL}/advice/${userIdentifier}?limit=50`)
       // Assuming response.data is already sorted descending by date from the API
       setInteractions(response.data)
     } catch (error) {
