@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react'
 import { UserButton } from '@clerk/nextjs'
 import axios from 'axios'
-import { Github, Brain, Target, TrendingUp, AlertCircle, CheckCircle, MessageCircle, BookOpen, Menu, X, History, Eye, Calendar as CalendarIcon, ArrowRight } from 'lucide-react'
+import { Github, Brain, Target, Settings, TrendingUp, AlertCircle, CheckCircle, MessageCircle, BookOpen, Menu, X, History, Eye, Calendar as CalendarIcon, ArrowRight } from 'lucide-react'
 import CheckInModal from './CheckInModal'
 import AgentInsights from './AgentInsights'
 import Chat from './Chat'
@@ -15,6 +15,7 @@ import MarkdownRenderer from './MarkdownRenderer'
 import CommitmentTracker from './CommitmentTracker'
 import NotificationBanner from './NotificationBanner'
 import CommitmentCalendar from './CommitmentCalendar'
+import NotificationSettings from './NotificationSettings'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -73,6 +74,7 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
   const [refreshKey, setRefreshKey] = useState(0)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     loadDashboard()
@@ -208,7 +210,12 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
                   }
                 }}
               />
-
+              <button
+                onClick={() => setShowSettings(true)}
+                className="p-2 hover:bg-[#242424]/50 rounded-lg transition"
+              >
+                <Settings className="w-5 h-5 text-[#FBFAEE]/70" />
+              </button>
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -383,6 +390,13 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
           onComplete={handleCheckinComplete}
         />
       )}
+      {showSettings && (
+        <NotificationSettings
+          userEmail={userIdentifier}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
+
   )
 }

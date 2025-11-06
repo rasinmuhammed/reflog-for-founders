@@ -12,7 +12,8 @@ from models import (
     BusinessMetricCreate, BusinessMetricResponse,
     WeeklyReviewCreate, WeeklyReviewResponse,
     OKRCreate, OKRResponse,
-    TimeAllocationCreate, TimeAllocationResponse
+    TimeAllocationCreate, TimeAllocationResponse,
+    NotificationPreferences, NotificationPreferencesResponse
     
 )
 from github_integration import GitHubAnalyzer
@@ -21,6 +22,7 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel
 from datetime import datetime, timedelta, time
 from typing import Optional
+from email_service import EmailService
 
 # This import was missing from your file, needed for founder agents
 try:
@@ -1623,7 +1625,137 @@ def get_founder_dashboard(email: str, db: Session = Depends(get_db)):
             for a in latest_advice
         ]
     }
+# ==================== NOTIFICATION PREFERENCES ====================
 
+@app.get("/users/{email}/notification-preferences", response_model=NotificationPreferencesResponse)
+def get_notification_preferences(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """Get user's notification preferences"""
+    user = get_user_by_email_lookup(email, db)
+    
+    return {
+        "email_notifications_enabled": user.email_notifications_enabled,
+        "morning_reminder_time": user.morning_reminder_time,
+        "evening_reminder_time": user.evening_reminder_time,
+        "timezone": user.timezone
+    }
+
+
+@app.post("/users/{email}/notification-preferences", response_model=NotificationPreferencesResponse)
+def update_notification_preferences(
+    email: str,
+    preferences: NotificationPreferences,
+    db: Session = Depends(get_db)
+):
+    """Update user's notification preferences"""
+    user = get_user_by_email_lookup(email, db)
+    
+    # Update preferences
+    user.email_notifications_enabled = preferences.email_notifications_enabled
+    
+    if preferences.morning_reminder_time:
+        user.morning_reminder_time = preferences.morning_reminder_time
+    
+    if preferences.evening_reminder_time:
+        user.evening_reminder_time = preferences.evening_reminder_time
+    
+    if preferences.timezone:
+        user.timezone = preferences.timezone
+    
+    db.commit()
+    db.refresh(user)
+    
+    print(f"✓ Updated notification preferences for {email}")
+    
+    return {
+        "email_notifications_enabled": user.email_notifications_enabled,
+        "morning_reminder_time": user.morning_reminder_time,
+        "evening_reminder_time": user.evening_reminder_time,
+        "timezone": user.timezone
+    }
+
+
+@app.post("/users/{email}/test-notification")
+def send_test_notification(
+    email: str,
+    notification_type: str = 'morning',  # morning, evening, or weekly
+    db: Session = Depends(get_db)
+):
+    """Send a test notification to user"""
+    user = get_user_by_email_lookup(email, db)
+    
+    user_name = user.full_name or user.email.split('@')[0]
+    accountability_style = user.accountability_style or 'balanced'
+    
+    success = False
+    
+    if notification_type == 'morning':
+        success = EmailService.send_morning_reminder(
+            to_email=email,
+            user_name=user_name,
+            accountability_style=accountability_style
+        )
+    elif notification_type == 'evening':
+        # Get a recent commitment or use placeholder
+        recent_checkin = db.query(models.CheckIn).filter(
+            models.CheckIn.user_id == user.id
+        ).order_by(models.CheckIn.timestamp.desc()).first()
+        
+        commitment = recent_checkin.commitment if recent_checkin else "Complete your project milestone"
+        
+        success = EmailService.send_evening_reminder(
+            to_email=email,
+            user_name=user_name,
+            commitment=commitment,
+            accountability_style=accountability_style,
+            is_urgent=False
+        )
+    elif notification_type == 'weekly':
+        # Get last week's stats
+        seven_days_ago = datetime.now() - timedelta(days=7)
+        checkins = db.query(models.CheckIn).filter(
+            models.CheckIn.user_id == user.id,
+            models.CheckIn.timestamp >= seven_days_ago,
+            models.CheckIn.shipped != None
+        ).all()
+        
+        total = len(checkins)
+        shipped = sum(1 for c in checkins if c.shipped)
+        
+        stats = {
+            'total_commitments': total,
+            'shipped': shipped,
+            'success_rate': (shipped / total * 100) if total > 0 else 0
+        }
+        
+        success = EmailService.send_weekly_summary(
+            to_email=email,
+            user_name=user_name,
+            stats=stats,
+            accountability_style=accountability_style
+        )
+    
+    if success:
+        return {
+            "message": f"Test {notification_type} notification sent to {email}",
+            "success": True
+        }
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send test notification"
+        )
+
+
+# Update the main startup to include scheduler
 if __name__ == "__main__":
     import uvicorn
+    from notification_scheduler import start_scheduler
+    
+    # Start the notification scheduler
+    start_scheduler()
+    
+    # Start the API server
     uvicorn.run(app, host="0.0.0.0", port=8000)

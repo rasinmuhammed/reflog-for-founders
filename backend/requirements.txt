@@ -10,3 +10,5 @@ PyGithub
 python-multipart
 httpx
 psycopg2-binary
+resend
+apscheduler  

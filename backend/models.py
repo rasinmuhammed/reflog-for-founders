@@ -13,19 +13,25 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
-    github_username = Column(String(255), unique=True, index=True, nullable=True)  # Now optional
+    github_username = Column(String(255), unique=True, index=True, nullable=True)
     email = Column(String(255), unique=True, index=True)
     full_name = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     onboarding_complete = Column(Boolean, default=False)
     
     # Founder-specific fields
-    business_stage = Column(String(100), nullable=True)  # idea, mvp, early_revenue, scaling, etc.
+    business_stage = Column(String(100), nullable=True)
     primary_goal = Column(Text, nullable=True)
-    check_in_frequency = Column(String(50), default='daily')  # daily, weekly, custom
-    accountability_style = Column(String(50), default='balanced')  # gentle, balanced, intense
-    key_metrics = Column(JSON, nullable=True)  # List of metrics they want to track
-    work_preferences = Column(JSON, nullable=True)  # Work style, challenges, etc.
+    check_in_frequency = Column(String(50), default='daily')
+    accountability_style = Column(String(50), default='balanced')
+    key_metrics = Column(JSON, nullable=True)
+    work_preferences = Column(JSON, nullable=True)
+    
+    # NEW: Notification preferences
+    email_notifications_enabled = Column(Boolean, default=True)
+    morning_reminder_time = Column(String(10), default='09:00')  # 24-hour format
+    evening_reminder_time = Column(String(10), default='18:00')  # 24-hour format
+    timezone = Column(String(50), default='UTC')  # User timezone
 
 class CheckIn(Base):
     __tablename__ = "checkins"
@@ -309,6 +315,21 @@ class TimeAllocationResponse(BaseModel):
     category: str
     hours: float
     notes: Optional[str]
+    
+    class Config:
+        from_attributes = True
+
+class NotificationPreferences(BaseModel):
+    email_notifications_enabled: bool
+    morning_reminder_time: Optional[str] = '09:00'
+    evening_reminder_time: Optional[str] = '18:00'
+    timezone: Optional[str] = 'UTC'
+
+class NotificationPreferencesResponse(BaseModel):
+    email_notifications_enabled: bool
+    morning_reminder_time: str
+    evening_reminder_time: str
+    timezone: str
     
     class Config:
         from_attributes = True
