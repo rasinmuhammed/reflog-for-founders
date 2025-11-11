@@ -27,11 +27,16 @@ class User(Base):
     key_metrics = Column(JSON, nullable=True)
     work_preferences = Column(JSON, nullable=True)
     
-    # NEW: Notification preferences
+    # NEW: User's own Groq API key (encrypted in production)
+    groq_api_key = Column(String(500), nullable=True)
+    
+    # Notification preferences
     email_notifications_enabled = Column(Boolean, default=True)
-    morning_reminder_time = Column(String(10), default='09:00')  # 24-hour format
-    evening_reminder_time = Column(String(10), default='18:00')  # 24-hour format
-    timezone = Column(String(50), default='UTC')  # User timezone
+    morning_reminder_time = Column(String(10), default='09:00')
+    evening_reminder_time = Column(String(10), default='18:00')
+    timezone = Column(String(50), default='UTC')
+
+# ... (rest of the models remain the same)
 
 class CheckIn(Base):
     __tablename__ = "checkins"
@@ -96,11 +101,11 @@ class BusinessMetric(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
-    metric_type = Column(String(100))  # mrr, users, runway, etc.
+    metric_type = Column(String(100))
     value = Column(Float)
-    unit = Column(String(50), nullable=True)  # dollars, days, count, etc.
+    unit = Column(String(50), nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    context = Column(JSON, nullable=True)  # Additional context
+    context = Column(JSON, nullable=True)
 
 class WeeklyReview(Base):
     __tablename__ = "weekly_reviews"
@@ -108,8 +113,8 @@ class WeeklyReview(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     week_start = Column(DateTime)
-    wins = Column(JSON)  # ["Closed 2 customers", "Shipped feature X"]
-    key_metrics = Column(JSON)  # {"mrr": 8400, "users": 1247}
+    wins = Column(JSON)
+    key_metrics = Column(JSON)
     biggest_blocker = Column(Text)
     what_avoiding = Column(Text)
     next_week_focus = Column(Text)
@@ -121,10 +126,10 @@ class OKR(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
-    quarter = Column(String(10))  # "2025-Q2"
+    quarter = Column(String(10))
     objective = Column(Text)
-    key_results = Column(JSON)  # [{"kr": "Reach $10K MRR", "target": 10000, "current": 8400}]
-    progress_updates = Column(JSON)  # Weekly check-ins
+    key_results = Column(JSON)
+    progress_updates = Column(JSON)
     achieved = Column(Boolean, nullable=True)
 
 class TimeAllocation(Base):
@@ -133,7 +138,7 @@ class TimeAllocation(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     date = Column(DateTime, default=datetime.utcnow)
-    category = Column(String(50))  # 'product', 'sales', 'fundraising', 'ops', 'marketing'
+    category = Column(String(50))
     hours = Column(Float)
     notes = Column(Text, nullable=True)
 
@@ -155,6 +160,7 @@ class OnboardingData(BaseModel):
     biggest_challenge: str
     work_style: str
     github_username: Optional[str] = None
+    groq_api_key: Optional[str] = None  # NEW: Optional API key during onboarding
 
 class UserResponse(BaseModel):
     id: int
@@ -166,9 +172,13 @@ class UserResponse(BaseModel):
     primary_goal: Optional[str]
     check_in_frequency: str
     accountability_style: str
+    has_groq_key: bool  # NEW: Indicates if user has set their API key
     
     class Config:
         from_attributes = True
+
+class GroqApiKeyUpdate(BaseModel):
+    groq_api_key: str
 
 class CheckInCreate(BaseModel):
     energy_level: int
@@ -253,8 +263,8 @@ class LifeDecisionResponse(BaseModel):
 class BusinessMetricCreate(BaseModel):
     metric_type: str
     value: float
-    target: Optional[float] = None
-    notes: Optional[str] = None
+    unit: Optional[str] = None
+    context: Optional[Dict] = None
 
 class BusinessMetricResponse(BaseModel):
     id: int
@@ -269,7 +279,7 @@ class BusinessMetricResponse(BaseModel):
 
 class WeeklyReviewCreate(BaseModel):
     wins: List[str]
-    key_metrics: Dict[str, float]  # {"mrr": 8400, "users": 1247}
+    key_metrics: Dict[str, float]
     biggest_blocker: str
     what_avoiding: str
     next_week_focus: str
@@ -289,9 +299,9 @@ class WeeklyReviewResponse(BaseModel):
         from_attributes = True
 
 class OKRCreate(BaseModel):
-    quarter: str  # "2025-Q2"
+    quarter: str
     objective: str
-    key_results: List[Dict]  # [{"kr": "Reach $10K MRR", "target": 10000, "current": 8400}]
+    key_results: List[Dict]
 
 class OKRResponse(BaseModel):
     id: int
@@ -305,7 +315,7 @@ class OKRResponse(BaseModel):
         from_attributes = True
 
 class TimeAllocationCreate(BaseModel):
-    category: str  # 'product', 'sales', 'fundraising', 'ops', 'marketing'
+    category: str
     hours: float
     notes: Optional[str] = None
 

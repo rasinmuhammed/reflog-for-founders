@@ -1,5 +1,5 @@
 from crewai import Task, Crew, Process
-from agents import analyst, psychologist, strategist, contrarian
+from agents import get_agents
 from typing import Dict, List
 import json
 import models
@@ -8,11 +8,16 @@ import io
 import sys
 
 class SageMentorCrew:
-    def __init__(self):
-        self.analyst = analyst
-        self.psychologist = psychologist
-        self.strategist = strategist
-        self.contrarian = contrarian
+    def __init__(self, groq_api_key: str):
+        """Initialize crew with user's Groq API key"""
+        if not groq_api_key:
+            raise ValueError("Groq API key is required")
+        
+        agents = get_agents(groq_api_key)
+        self.analyst = agents["analyst"]
+        self.psychologist = agents["psychologist"]
+        self.strategist = agents["strategist"]
+        self.contrarian = agents["contrarian"]
     
     def analyze_developer(self, github_data: Dict, checkin_history: List[Dict] = None) -> Dict:
         """Main analysis flow: All agents deliberate on the developer's situation"""

@@ -16,6 +16,8 @@ import CommitmentTracker from './CommitmentTracker'
 import NotificationBanner from './NotificationBanner'
 import CommitmentCalendar from './CommitmentCalendar'
 import NotificationSettings from './NotificationSettings'
+import ApiKeySetup from './ApiKeySetup'
+import Setting from './Settings'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -75,10 +77,18 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [hasGroqKey, setHasGroqKey] = useState(false)
+  const [checkingKey, setCheckingKey] = useState(true)
+  const [showApiKeySetup, setShowApiKeySetup] = useState(false)
 
   useEffect(() => {
     loadDashboard()
   }, [userIdentifier, refreshKey])
+
+  useEffect(() => {
+    checkGroqKeyStatus()
+  }, [userIdentifier])
+
 
   const loadDashboard = async () => {
     setLoading(true)
@@ -89,6 +99,23 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
       console.error('Failed to load dashboard:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const checkGroqKeyStatus = async () => {
+    setCheckingKey(true)
+    try {
+      const response = await axios.get(
+        `${API_URL}/users/${encodeURIComponent(userIdentifier)}/groq-key/status`
+      )
+      setHasGroqKey(response.data.has_key)
+      if (!response.data.has_key) {
+        setShowApiKeySetup(true)
+      }
+    } catch (error) {
+      console.error('Failed to check API key status:', error)
+    } finally {
+      setCheckingKey(false)
     }
   }
 
@@ -212,9 +239,12 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
               />
               <button
                 onClick={() => setShowSettings(true)}
-                className="p-2 hover:bg-[#242424]/50 rounded-lg transition"
+                className="p-2 hover:bg-[#242424]/50 rounded-lg transition relative"
               >
                 <Settings className="w-5 h-5 text-[#FBFAEE]/70" />
+                {!hasGroqKey && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse" />
+                )}
               </button>
               {/* Mobile Menu Button */}
               <button
@@ -266,6 +296,28 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
           )}
         </div>
       </header>
+
+      {!hasGroqKey && !checkingKey && (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-4 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="w-6 h-6 text-white" />
+              <div>
+                <p className="text-white font-semibold">AI Features Disabled</p>
+                <p className="text-white/90 text-sm">Add your Groq API key to enable AI analysis</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowApiKeySetup(true)}
+              className="bg-white text-orange-600 px-6 py-2 rounded-xl font-semibold hover:bg-gray-100 transition"
+            >
+              Setup Now
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -394,6 +446,18 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
         <NotificationSettings
           userEmail={userIdentifier}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+      {showApiKeySetup && (
+        <ApiKeySetup
+          userEmail={userIdentifier}
+          onComplete={() => {
+            setShowApiKeySetup(false)
+            setHasGroqKey(true)
+            setRefreshKey(prev => prev + 1)
+          }}
+          onClose={() => setShowApiKeySetup(false)}
+          required={!hasGroqKey}
         />
       )}
     </div>

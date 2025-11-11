@@ -13,7 +13,8 @@ from models import (
     WeeklyReviewCreate, WeeklyReviewResponse,
     OKRCreate, OKRResponse,
     TimeAllocationCreate, TimeAllocationResponse,
-    NotificationPreferences, NotificationPreferencesResponse
+    NotificationPreferences, NotificationPreferencesResponse,
+    GroqApiKeyUpdate
     
 )
 from github_integration import GitHubAnalyzer
@@ -65,6 +66,20 @@ def get_user_by_email_lookup(email: str, db: Session):
             detail=f"User with email '{email}' not found."
         )
     return user
+
+def get_user_groq_key(user_id: int, db: Session) -> str:
+    """Get user's Groq API key or raise error"""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not user.groq_api_key:
+        raise HTTPException(
+            status_code=400,
+            detail="Groq API key not configured. Please add your API key in settings."
+        )
+    
+    return user.groq_api_key
 
 # ==============================================================================
 # User & Onboarding Endpoints
@@ -245,16 +260,18 @@ def get_github_analysis(github_username: str, db: Session = Depends(get_db)):
 # Check-in & Commitment Endpoints (Refactored for Email)
 # ==============================================================================
 
-@app.post("/checkins", response_model=CheckInResponse) # CHANGED: Uses query param for email
+@app.post("/checkins", response_model=CheckInResponse)
 def create_checkin(
-    email: str, # CHANGED: Added email as query param
+    email: str,
     checkin: CheckInCreate,
     db: Session = Depends(get_db)
 ):
-    """Create check-in - now uses email instead of github_username"""
+    """Create check-in - now uses user's own Groq API key"""
     user = get_user_by_email_lookup(email, db)
     
-    # ... (rest of your logic is correct)
+    # Get user's API key
+    groq_api_key = get_user_groq_key(user.id, db)
+    
     recent_checkins = db.query(models.CheckIn).filter(
         models.CheckIn.user_id == user.id
     ).order_by(models.CheckIn.timestamp.desc()).limit(7).all()
@@ -279,6 +296,10 @@ def create_checkin(
         })
     
     try:
+        # Create crew with user's API key
+        from crew import SageMentorCrew
+        sage_crew = SageMentorCrew(groq_api_key)  # Pass API key to crew
+        
         if hasattr(sage_crew, 'analyze_founder_checkin'):
             analysis = sage_crew.analyze_founder_checkin(
                 {
@@ -343,6 +364,7 @@ def create_checkin(
         "ai_response": analysis_text,
         "message": "Check-in recorded successfully"
     }
+
 
 
 @app.patch("/checkins/{checkin_id}/evening")
@@ -485,16 +507,19 @@ def get_dashboard(identifier: str, db: Session = Depends(get_db)):
     }
 
 
-@app.post("/chat/{email}") # CHANGED
+@app.post("/chat/{email}")
 async def chat_with_mentor(
-    email: str, # CHANGED
+    email: str,
     message: ChatMessage,
     db: Session = Depends(get_db)
 ):
-    user = get_user_by_email_lookup(email, db) # CHANGED
+    user = get_user_by_email_lookup(email, db)
+    
+    # Get user's API key
+    groq_api_key = get_user_groq_key(user.id, db)
     
     github_analysis = None
-    if user.github_username: # Check if github is connected
+    if user.github_username:
         github_analysis = db.query(models.GitHubAnalysis).filter(
             models.GitHubAnalysis.user_id == user.id
         ).order_by(models.GitHubAnalysis.analyzed_at.desc()).first()
@@ -528,6 +553,10 @@ async def chat_with_mentor(
             for e in life_events
         ]
     }
+    
+    # Create crew with user's API key
+    from crew import SageMentorCrew
+    sage_crew = SageMentorCrew(groq_api_key)
     
     deliberation = sage_crew.chat_deliberation(
         message.message,
@@ -1747,7 +1776,72 @@ def send_test_notification(
             status_code=500,
             detail="Failed to send test notification"
         )
+# ==================== NEW: API KEY MANAGEMENT ENDPOINTS ====================
 
+@app.post("/users/{email}/groq-key")
+def set_groq_api_key(
+    email: str,
+    key_data: GroqApiKeyUpdate,
+    db: Session = Depends(get_db)
+):
+    """Set or update user's Groq API key"""
+    user = get_user_by_email_lookup(email, db)
+    
+    # Validate the API key format (starts with gsk_)
+    if not key_data.groq_api_key.startswith('gsk_'):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid Groq API key format. Key should start with 'gsk_'"
+        )
+    
+    # Test the API key before saving
+    try:
+        from agents import create_groq_llm
+        test_llm = create_groq_llm(key_data.groq_api_key)
+        # Simple validation - if it doesn't throw an error, it's likely valid
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid Groq API key: {str(e)}"
+        )
+    
+    # Save the API key (in production, encrypt this!)
+    user.groq_api_key = key_data.groq_api_key
+    db.commit()
+    
+    return {
+        "message": "Groq API key saved successfully",
+        "has_key": True
+    }
+
+@app.get("/users/{email}/groq-key/status")
+def check_groq_key_status(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """Check if user has a Groq API key configured"""
+    user = get_user_by_email_lookup(email, db)
+    
+    return {
+        "has_key": user.groq_api_key is not None,
+        "key_preview": f"{user.groq_api_key[:10]}..." if user.groq_api_key else None
+    }
+
+@app.delete("/users/{email}/groq-key")
+def delete_groq_api_key(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """Delete user's Groq API key"""
+    user = get_user_by_email_lookup(email, db)
+    
+    user.groq_api_key = None
+    db.commit()
+    
+    return {
+        "message": "Groq API key deleted successfully",
+        "has_key": False
+    }
 
 # Update the main startup to include scheduler
 if __name__ == "__main__":
