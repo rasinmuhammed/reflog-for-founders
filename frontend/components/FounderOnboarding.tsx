@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from '@clerk/nextjs'; // 1. Import the useUser hook
-import { 
+import {
   Rocket, Target, TrendingUp, Calendar, Shield, Brain,
   ChevronRight, ChevronLeft, Check, Loader2, Sparkles,
   Github, AlertCircle
@@ -8,18 +8,33 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-export default function FounderOnboarding({ onComplete }) {
+interface FounderOnboardingProps {
+  onComplete: (email: string) => void;
+}
+
+interface FormData {
+  businessStage: string;
+  primaryGoal: string;
+  checkInFrequency: string;
+  accountabilityStyle: string;
+  keyMetrics: string[];
+  biggestChallenge: string;
+  workStyle: string;
+  githubUsername: string;
+}
+
+export default function FounderOnboarding({ onComplete }: FounderOnboardingProps) {
   const { user } = useUser(); // 2. Get the currently logged-in user
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     businessStage: '',
     primaryGoal: '',
     checkInFrequency: 'daily',
-    accountabilityStyle: 'balanced',
+    accountabilityStyle: 'coach',
     keyMetrics: [],
     biggestChallenge: '',
     workStyle: '',
@@ -60,7 +75,7 @@ export default function FounderOnboarding({ onComplete }) {
 
   const handleSubmit = async () => {
     if (!validateCurrentStep()) return;
-    
+
     // 3. Get the REAL user data from the hook
     const email = user?.emailAddresses[0]?.emailAddress;
     const fullName = user?.fullName;
@@ -69,7 +84,7 @@ export default function FounderOnboarding({ onComplete }) {
       setError('Could not get user email. Please try logging in again.');
       return;
     }
-    
+
     setLoading(true);
     setError('');
 
@@ -103,7 +118,7 @@ export default function FounderOnboarding({ onComplete }) {
   };
 
   const validateCurrentStep = () => {
-    switch(step) {
+    switch (step) {
       case 1: return formData.businessStage !== '';
       case 2: return formData.primaryGoal.length > 10;
       case 3: return formData.keyMetrics.length > 0;
@@ -113,7 +128,7 @@ export default function FounderOnboarding({ onComplete }) {
     }
   };
 
-  const toggleMetric = (metric) => {
+  const toggleMetric = (metric: string) => {
     setFormData(prev => ({
       ...prev,
       keyMetrics: prev.keyMetrics.includes(metric)
@@ -135,12 +150,12 @@ export default function FounderOnboarding({ onComplete }) {
   return (
     <div className="min-h-screen bg-[#000000] text-[#FBFAEE] flex items-center justify-center p-4">
       {/* ... (rest of your component's JSX) ... */}
-      
+
       {/* (No changes to the JSX structure, only to the logic above) */}
 
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#933DC9]/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#53118F]/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#53118F]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
       <div className="max-w-4xl w-full relative z-10">
@@ -157,9 +172,8 @@ export default function FounderOnboarding({ onComplete }) {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             {[1, 2, 3, 4, 5, 6].map((s) => (
-              <div key={s} className={`flex-1 h-2 mx-1 rounded-full transition-all ${
-                s <= step ? 'bg-gradient-to-r from-[#933DC9] to-[#53118F]' : 'bg-[#242424]'
-              }`} />
+              <div key={s} className={`flex-1 h-2 mx-1 rounded-full transition-all ${s <= step ? 'bg-gradient-to-r from-[#933DC9] to-[#53118F]' : 'bg-[#242424]'
+                }`} />
             ))}
           </div>
           <div className="text-sm text-[#FBFAEE]/60 text-center">
@@ -174,17 +188,16 @@ export default function FounderOnboarding({ onComplete }) {
                 <h2 className="text-3xl font-bold mb-3">Where are you in your journey?</h2>
                 <p className="text-[#FBFAEE]/70">This helps us tailor advice to your stage</p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {businessStages.map((stage) => (
                   <button
                     key={stage.id}
-                    onClick={() => setFormData({...formData, businessStage: stage.id})}
-                    className={`p-6 rounded-xl text-left transition-all border-2 ${
-                      formData.businessStage === stage.id
-                        ? 'bg-gradient-to-br from-[#933DC9]/30 to-[#53118F]/30 border-[#933DC9] scale-105'
-                        : 'bg-[#000000]/40 border-[#242424]/50 hover:border-[#933DC9]/50'
-                    }`}
+                    onClick={() => setFormData({ ...formData, businessStage: stage.id })}
+                    className={`p-6 rounded-xl text-left transition-all border-2 ${formData.businessStage === stage.id
+                      ? 'bg-gradient-to-br from-[#933DC9]/30 to-[#53118F]/30 border-[#933DC9] scale-105'
+                      : 'bg-[#000000]/40 border-[#242424]/50 hover:border-[#933DC9]/50'
+                      }`}
                   >
                     <div className="flex items-start space-x-4">
                       <div className="text-4xl">{stage.icon}</div>
@@ -212,7 +225,7 @@ export default function FounderOnboarding({ onComplete }) {
 
               <textarea
                 value={formData.primaryGoal}
-                onChange={(e) => setFormData({...formData, primaryGoal: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, primaryGoal: e.target.value })}
                 placeholder="e.g., Reach $10K MRR by end of Q2 by acquiring 50 paying customers"
                 className="w-full px-4 py-4 bg-[#000000]/50 border border-[#242424]/60 text-[#FBFAEE] placeholder-[#FBFAEE]/50 rounded-xl focus:ring-2 focus:ring-[#933DC9] resize-none"
                 rows={4}
@@ -224,7 +237,7 @@ export default function FounderOnboarding({ onComplete }) {
                   <div>
                     <p className="text-sm text-[#FBFAEE]/80 font-medium mb-1">Pro Tip</p>
                     <p className="text-sm text-[#FBFAEE]/70">
-                      Good goals have numbers, deadlines, and clear outcomes. 
+                      Good goals have numbers, deadlines, and clear outcomes.
                       "Get more users" is vague. "Get 100 sign-ups in 30 days" is actionable.
                     </p>
                   </div>
@@ -246,11 +259,10 @@ export default function FounderOnboarding({ onComplete }) {
                   <button
                     key={metric}
                     onClick={() => toggleMetric(metric)}
-                    className={`p-4 rounded-xl text-left transition-all border ${
-                      formData.keyMetrics.includes(metric)
-                        ? 'bg-[#933DC9]/20 border-[#933DC9]/50 text-[#FBFAEE]'
-                        : 'bg-[#000000]/40 border-[#242424]/50 text-[#FBFAEE]/70 hover:border-[#933DC9]/30'
-                    }`}
+                    className={`p-4 rounded-xl text-left transition-all border ${formData.keyMetrics.includes(metric)
+                      ? 'bg-[#933DC9]/20 border-[#933DC9]/50 text-[#FBFAEE]'
+                      : 'bg-[#000000]/40 border-[#242424]/50 text-[#FBFAEE]/70 hover:border-[#933DC9]/30'
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{metric}</span>
@@ -274,7 +286,7 @@ export default function FounderOnboarding({ onComplete }) {
 
               <textarea
                 value={formData.biggestChallenge}
-                onChange={(e) => setFormData({...formData, biggestChallenge: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, biggestChallenge: e.target.value })}
                 placeholder="e.g., I struggle with consistent outreach. I know I need to do 10 sales calls per week but I keep avoiding them..."
                 className="w-full px-4 py-4 bg-[#000000]/50 border border-[#242424]/60 text-[#FBFAEE] placeholder-[#FBFAEE]/50 rounded-xl focus:ring-2 focus:ring-[#933DC9] resize-none"
                 rows={5}
@@ -282,18 +294,17 @@ export default function FounderOnboarding({ onComplete }) {
 
               <div className="grid grid-cols-3 gap-4 mt-6">
                 {[
-                  {id: 'morning_person', icon: '🌅', label: 'Morning Person'},
-                  {id: 'night_owl', icon: '🌙', label: 'Night Owl'},
-                  {id: 'flexible', icon: '🔄', label: 'Flexible'}
+                  { id: 'morning_person', icon: '🌅', label: 'Morning Person' },
+                  { id: 'night_owl', icon: '🌙', label: 'Night Owl' },
+                  { id: 'flexible', icon: '🔄', label: 'Flexible' }
                 ].map((style) => (
                   <button
                     key={style.id}
-                    onClick={() => setFormData({...formData, workStyle: style.id})}
-                    className={`p-4 rounded-xl border ${
-                      formData.workStyle === style.id
-                        ? 'bg-[#933DC9]/20 border-[#933DC9]/50'
-                        : 'bg-[#000000]/40 border-[#242424]/50 hover:border-[#933DC9]/30'
-                    }`}
+                    onClick={() => setFormData({ ...formData, workStyle: style.id })}
+                    className={`p-4 rounded-xl border ${formData.workStyle === style.id
+                      ? 'bg-[#933DC9]/20 border-[#933DC9]/50'
+                      : 'bg-[#000000]/40 border-[#242424]/50 hover:border-[#933DC9]/30'
+                      }`}
                   >
                     <div className="text-2xl mb-2">{style.icon}</div>
                     <div className="text-sm font-medium">{style.label}</div>
@@ -315,12 +326,11 @@ export default function FounderOnboarding({ onComplete }) {
                 {accountabilityStyles.map((style) => (
                   <button
                     key={style.id}
-                    onClick={() => setFormData({...formData, accountabilityStyle: style.id})}
-                    className={`w-full p-6 rounded-xl text-left transition-all border-2 ${
-                      formData.accountabilityStyle === style.id
-                        ? `bg-gradient-to-r ${style.color}/20 border-[#933DC9] scale-105`
-                        : 'bg-[#000000]/40 border-[#242424]/50 hover:border-[#933DC9]/50'
-                    }`}
+                    onClick={() => setFormData({ ...formData, accountabilityStyle: style.id })}
+                    className={`w-full p-6 rounded-xl text-left transition-all border-2 ${formData.accountabilityStyle === style.id
+                      ? `bg-gradient-to-r ${style.color}/20 border-[#933DC9] scale-105`
+                      : 'bg-[#000000]/40 border-[#242424]/50 hover:border-[#933DC9]/50'
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
@@ -346,12 +356,11 @@ export default function FounderOnboarding({ onComplete }) {
                   {checkInFrequencies.map((freq) => (
                     <button
                       key={freq.id}
-                      onClick={() => setFormData({...formData, checkInFrequency: freq.id})}
-                      className={`p-4 rounded-xl text-center transition-all border ${
-                        formData.checkInFrequency === freq.id
-                          ? 'bg-[#933DC9]/20 border-[#933DC9]/50'
-                          : 'bg-[#000000]/40 border-[#242424]/50 hover:border-[#933DC9]/30'
-                      }`}
+                      onClick={() => setFormData({ ...formData, checkInFrequency: freq.id })}
+                      className={`p-4 rounded-xl text-center transition-all border ${formData.checkInFrequency === freq.id
+                        ? 'bg-[#933DC9]/20 border-[#933DC9]/50'
+                        : 'bg-[#000000]/40 border-[#242424]/50 hover:border-[#933DC9]/30'
+                        }`}
                     >
                       <Calendar className="w-6 h-6 mx-auto mb-2" />
                       <div className="font-medium text-sm">{freq.label}</div>
@@ -380,7 +389,7 @@ export default function FounderOnboarding({ onComplete }) {
                 <input
                   type="text"
                   value={formData.githubUsername}
-                  onChange={(e) => setFormData({...formData, githubUsername: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, githubUsername: e.target.value })}
                   placeholder="octocat"
                   className="w-full px-4 py-3 bg-[#000000]/50 border border-[#242424]/60 text-[#FBFAEE] placeholder-[#FBFAEE]/50 rounded-xl focus:ring-2 focus:ring-[#933DC9]"
                 />

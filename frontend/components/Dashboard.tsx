@@ -57,6 +57,7 @@ interface DashboardData {
     commitments_kept: number
     success_rate: number
     avg_energy: number
+    current_streak: number
   }
   recent_advice: Array<{
     id: number
@@ -182,14 +183,11 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
       <header className="bg-[#000000]/80 border-b border-[#242424]/50 sticky top-0 z-40 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            {/* Logo and User Info */}
+            {/* Logo and User Info - REMOVED LOGO, KEPT USER INFO */}
             <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-br from-[#933DC9] to-[#53118F] p-3 rounded-2xl shadow-lg">
-                <Brain className="w-7 h-7 text-[#FBFAEE]" />
-              </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#933DC9] to-[#53118F] bg-clip-text text-transparent">
-                  Reflog
+                <h1 className="text-xl font-bold text-[#FBFAEE]">
+                  Dashboard
                 </h1>
                 <p className="text-xs text-[#FBFAEE]/60">
                   {data.user.full_name || data.user.email}
@@ -206,11 +204,10 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 py-2 rounded-full transition-all flex items-center space-x-2 text-sm ${
-                      isActive
-                        ? 'bg-[#933DC9]/20 text-[#C488F8] shadow-md ring-1 ring-[#933DC9]/30'
-                        : 'text-[#FBFAEE]/70 hover:text-[#FBFAEE] hover:bg-[#242424]/60'
-                    }`}
+                    className={`px-4 py-2 rounded-full transition-all flex items-center space-x-2 text-sm ${isActive
+                      ? 'bg-[#933DC9]/20 text-[#C488F8] shadow-md ring-1 ring-[#933DC9]/30'
+                      : 'text-[#FBFAEE]/70 hover:text-[#FBFAEE] hover:bg-[#242424]/60'
+                      }`}
                   >
                     <Icon className={`w-4 h-4 ${isActive ? 'text-[#C488F8]' : ''}`} />
                     <span className="font-medium">{tab.label}</span>
@@ -270,11 +267,10 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
                         setActiveTab(tab.id)
                         setMobileMenuOpen(false)
                       }}
-                      className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all text-base ${
-                        isActive
-                          ? 'bg-[#933DC9]/20 text-[#C488F8]'
-                          : 'text-[#FBFAEE]/80 hover:bg-[#242424]/50 hover:text-[#FBFAEE]'
-                      }`}
+                      className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all text-base ${isActive
+                        ? 'bg-[#933DC9]/20 text-[#C488F8]'
+                        : 'text-[#FBFAEE]/80 hover:bg-[#242424]/50 hover:text-[#FBFAEE]'
+                        }`}
                     >
                       <Icon className="w-5 h-5" />
                       <span className="font-medium">{tab.label}</span>
@@ -298,26 +294,26 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
       </header>
 
       {!hasGroqKey && !checkingKey && (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-4 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <AlertCircle className="w-6 h-6 text-white" />
-              <div>
-                <p className="text-white font-semibold">AI Features Disabled</p>
-                <p className="text-white/90 text-sm">Add your Groq API key to enable AI analysis</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-4 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-6 h-6 text-white" />
+                <div>
+                  <p className="text-white font-semibold">AI Features Disabled</p>
+                  <p className="text-white/90 text-sm">Add your Groq API key to enable AI analysis</p>
+                </div>
               </div>
+              <button
+                onClick={() => setShowApiKeySetup(true)}
+                className="bg-white text-orange-600 px-6 py-2 rounded-xl font-semibold hover:bg-gray-100 transition"
+              >
+                Setup Now
+              </button>
             </div>
-            <button
-              onClick={() => setShowApiKeySetup(true)}
-              className="bg-white text-orange-600 px-6 py-2 rounded-xl font-semibold hover:bg-gray-100 transition"
-            >
-              Setup Now
-            </button>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -379,12 +375,21 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
               <div className="bg-[#242424] border border-[#242424]/50 rounded-2xl shadow-xl p-6">
                 <h3 className="text-lg font-bold text-[#FBFAEE] mb-4">Accountability</h3>
                 <div className="space-y-4">
-                  <div className="bg-gradient-to-br from-[#933DC9]/20 to-[#53118F]/20 border border-[#933DC9]/30 rounded-xl p-4 text-center">
-                    <div className="text-4xl font-bold text-[#C488F8]">
-                      {data.stats.success_rate.toFixed(0)}%
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-[#933DC9]/20 to-[#53118F]/20 border border-[#933DC9]/30 rounded-xl p-4 text-center">
+                      <div className="text-3xl font-bold text-[#C488F8]">
+                        {data.stats.current_streak}
+                      </div>
+                      <div className="text-xs text-[#FBFAEE]/70 uppercase tracking-wider mt-1">Day Streak</div>
                     </div>
-                    <div className="text-sm text-[#FBFAEE]/70">Success Rate</div>
+                    <div className="bg-[#000000]/40 border border-white/5 rounded-xl p-4 text-center flex flex-col justify-center">
+                      <div className="text-2xl font-bold text-[#FBFAEE]">
+                        {data.stats.success_rate.toFixed(0)}%
+                      </div>
+                      <div className="text-xs text-[#FBFAEE]/60 mt-1">Success Rate</div>
+                    </div>
                   </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-[#000000]/40 rounded-lg p-3 text-center">
                       <div className="text-2xl font-bold text-[#FBFAEE]">{data.stats.total_checkins}</div>

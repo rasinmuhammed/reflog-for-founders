@@ -36,6 +36,17 @@ class User(Base):
     evening_reminder_time = Column(String(10), default='18:00')
     timezone = Column(String(50), default='UTC')
 
+    # Gamification
+    xp = Column(Integer, default=0)
+    level = Column(Integer, default=1)
+    current_streak = Column(Integer, default=0)
+    longest_streak = Column(Integer, default=0)
+    last_checkin_date = Column(DateTime, nullable=True)
+ 
+    @property
+    def has_groq_key(self) -> bool:
+        return bool(self.groq_api_key)
+
 # ... (rest of the models remain the same)
 
 class CheckIn(Base):
@@ -172,7 +183,10 @@ class UserResponse(BaseModel):
     primary_goal: Optional[str]
     check_in_frequency: str
     accountability_style: str
-    has_groq_key: bool  # NEW: Indicates if user has set their API key
+    has_groq_key: bool
+    xp: int
+    level: int
+    current_streak: int
     
     class Config:
         from_attributes = True

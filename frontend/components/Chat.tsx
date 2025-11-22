@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 import { Send, Brain, BarChart, AlertTriangle, Target, Loader2, MessageCircle, History, Eye, EyeOff, Sparkles, Terminal } from 'lucide-react'
 import MarkdownRenderer from './MarkdownRenderer'
@@ -47,13 +47,13 @@ export default function Chat({ userIdentifier }: ChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const cleanAnsi = (text: string): string => {
-  if (!text) return '';
-  
+    if (!text) return '';
+
     const pattern = "[\\u001B\\u009B]\\[[()#;?]*?(?:(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-OR-Zcf-nqry=><])";
     const ansiRegex = new RegExp(pattern, 'g');
 
     return text.replace(ansiRegex, '');
-    };
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -72,7 +72,7 @@ export default function Chat({ userIdentifier }: ChatProps) {
   }
 
   // Icons remain the same
-  const agentIcons: Record<string, JSX.Element> = {
+  const agentIcons: Record<string, React.ReactNode> = {
     'Analyst': <BarChart className="w-5 h-5" />,
     'Psychologist': <Brain className="w-5 h-5" />,
     'Contrarian': <AlertTriangle className="w-5 h-5" />,
@@ -246,9 +246,9 @@ export default function Chat({ userIdentifier }: ChatProps) {
                               </div>
                               <div className="text-xs">
                                 <pre className="text-[#FBFAEE]/70 font-mono whitespace-pre-wrap break-words">
-                                    {cleanAnsi(contribution.output)}
+                                  {cleanAnsi(contribution.output)}
                                 </pre>
-                                </div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -345,7 +345,7 @@ export default function Chat({ userIdentifier }: ChatProps) {
                   )}
                 </div>
               ) : (
-                 // Error message style - Kept Red
+                // Error message style - Kept Red
                 <div className="bg-red-900/30 border border-red-500/40 text-red-300 px-6 py-3 rounded-lg max-w-md">
                   <p>{msg.content}</p>
                 </div>
@@ -357,12 +357,12 @@ export default function Chat({ userIdentifier }: ChatProps) {
         {/* Loading indicator */}
         {loading && (
           <div className="flex items-start space-x-3">
-             <div className="bg-[#242424] border border-[#242424]/60 px-6 py-4 rounded-2xl rounded-tl-none">
+            <div className="bg-[#242424] border border-[#242424]/60 px-6 py-4 rounded-2xl rounded-tl-none">
               <div className="flex items-center space-x-3">
-                 <Loader2 className="w-5 h-5 animate-spin text-[#933DC9]" /> {/* Orchid spinner */}
+                <Loader2 className="w-5 h-5 animate-spin text-[#933DC9]" /> {/* Orchid spinner */}
                 <div>
-                   <p className="text-[#FBFAEE]/90 font-medium">Agents are deliberating...</p>
-                   <p className="text-xs text-[#FBFAEE]/60 mt-1">
+                  <p className="text-[#FBFAEE]/90 font-medium">Agents are deliberating...</p>
+                  <p className="text-xs text-[#FBFAEE]/60 mt-1">
                     Analyst, Psychologist, Contrarian, and Strategist are debating your question
                   </p>
                 </div>

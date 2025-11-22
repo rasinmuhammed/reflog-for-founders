@@ -24,6 +24,7 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta, time
 from typing import Optional
 from email_service import EmailService
+from routers import users, checkins, score
 
 # This import was missing from your file, needed for founder agents
 try:
@@ -50,8 +51,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from routers import users, checkins, score, gamification
+ 
+app.include_router(users.router)
+app.include_router(checkins.router)
+app.include_router(score.router)
+app.include_router(gamification.router)
+
 github_analyzer = GitHubAnalyzer()
-sage_crew = SageMentorCrew()
+github_analyzer = GitHubAnalyzer()
+ # sage_crew removed - instantiated per request
+
 
 # ==============================================================================
 # Helper Function for User Lookup
@@ -82,7 +92,7 @@ def get_user_groq_key(user_id: int, db: Session) -> str:
     return user.groq_api_key
 
 # ==============================================================================
-# User & Onboarding Endpoints
+# User & Onboarding Endpoints (MOVED TO ROUTERS)
 # ==============================================================================
 
 @app.get("/")
@@ -92,110 +102,6 @@ def read_root():
         "version": "1.0.0",
         "status": "running"
     }
-
-@app.post("/users", response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    """
-    Create or update user - now email-based, GitHub optional
-    """
-    db_user = db.query(models.User).filter(
-        models.User.email == user.email
-    ).first()
-    
-    if db_user:
-        if user.full_name and db_user.full_name != user.full_name:
-            db_user.full_name = user.full_name
-        if user.github_username and db_user.github_username != user.github_username:
-            db_user.github_username = user.github_username
-        db.commit()
-        db.refresh(db_user)
-        print(f"✓ Updated existing user: {user.email}")
-        return db_user
-    
-    new_user = models.User(
-        email=user.email,
-        full_name=user.full_name,
-        github_username=user.github_username,
-        onboarding_complete=False
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    print(f"✅ Created new user: {user.email}")
-    return new_user
-
-@app.get("/users/by-email/{email}", response_model=UserResponse)
-def get_user_by_email(email: str, db: Session = Depends(get_db)):
-    """Get user by email (new primary lookup method)"""
-    user = get_user_by_email_lookup(email, db)
-    return user
-
-@app.post("/users/onboard", response_model=UserResponse)
-def complete_onboarding(
-    onboarding: OnboardingData,
-    email: str,
-    full_name: str = None,
-    db: Session = Depends(get_db)
-):
-    """
-    Complete founder onboarding with business details.
-    This endpoint finds the user by email query param.
-    """
-    user = db.query(models.User).filter(models.User.email == email).first()
-    
-    if not user:
-        user = models.User(
-            email=email,
-            full_name=full_name,
-            github_username=onboarding.github_username
-        )
-        db.add(user)
-        db.flush()  # Get the ID without committing
-    
-    # Update with onboarding data
-    user.business_stage = onboarding.business_stage
-    user.primary_goal = onboarding.primary_goal
-    user.check_in_frequency = onboarding.check_in_frequency
-    user.accountability_style = onboarding.accountability_style
-    user.key_metrics = {
-        "metrics": onboarding.key_metrics,
-        "configured_at": datetime.now().isoformat()
-    }
-    user.work_preferences = {
-        "biggest_challenge": onboarding.biggest_challenge,
-        "work_style": onboarding.work_style
-    }
-    user.onboarding_complete = True
-    
-    if onboarding.github_username:
-        user.github_username = onboarding.github_username
-    
-    db.commit()
-    db.refresh(user)
-    
-    try:
-        # Generate initial AI insights
-        initial_insights = sage_crew.generate_founder_insights(
-            business_stage=onboarding.business_stage,
-            primary_goal=onboarding.primary_goal,
-            biggest_challenge=onboarding.biggest_challenge,
-            accountability_style=onboarding.accountability_style
-        )
-        
-        advice = models.AgentAdvice(
-            user_id=user.id,
-            agent_name="Onboarding Strategist",
-            advice=initial_insights["advice"],
-            evidence={"onboarding_data": onboarding.dict()},
-            interaction_type="onboarding"
-        )
-        db.add(advice)
-        db.commit()
-    except Exception as e:
-        print(f"⚠️  Failed to generate initial insights: {str(e)}")
-    
-    return user
 
 # ==============================================================================
 # GitHub Endpoints (Still use github_username)
@@ -260,156 +166,6 @@ def get_github_analysis(github_username: str, db: Session = Depends(get_db)):
 # Check-in & Commitment Endpoints (Refactored for Email)
 # ==============================================================================
 
-@app.post("/checkins", response_model=CheckInResponse)
-def create_checkin(
-    email: str,
-    checkin: CheckInCreate,
-    db: Session = Depends(get_db)
-):
-    """Create check-in - now uses user's own Groq API key"""
-    user = get_user_by_email_lookup(email, db)
-    
-    # Get user's API key
-    groq_api_key = get_user_groq_key(user.id, db)
-    
-    recent_checkins = db.query(models.CheckIn).filter(
-        models.CheckIn.user_id == user.id
-    ).order_by(models.CheckIn.timestamp.desc()).limit(7).all()
-    
-    history = {
-        "recent_checkins": len(recent_checkins),
-        "avg_energy": sum(c.energy_level for c in recent_checkins) / len(recent_checkins) if recent_checkins else 0,
-        "commitments_kept": sum(1 for c in recent_checkins if c.shipped) if recent_checkins else 0
-    }
-    
-    recent_metrics = db.query(models.BusinessMetric).filter(
-        models.BusinessMetric.user_id == user.id
-    ).order_by(models.BusinessMetric.timestamp.desc()).limit(5).all()
-    
-    business_metrics = {}
-    for metric in recent_metrics:
-        if metric.metric_type not in business_metrics:
-            business_metrics[metric.metric_type] = []
-        business_metrics[metric.metric_type].append({
-            "value": metric.value,
-            "timestamp": metric.timestamp.isoformat()
-        })
-    
-    try:
-        # Create crew with user's API key
-        from crew import SageMentorCrew
-        sage_crew = SageMentorCrew(groq_api_key)  # Pass API key to crew
-        
-        if hasattr(sage_crew, 'analyze_founder_checkin'):
-            analysis = sage_crew.analyze_founder_checkin(
-                {
-                    "energy_level": checkin.energy_level,
-                    "avoiding_what": checkin.avoiding_what,
-                    "commitment": checkin.commitment,
-                    "mood": checkin.mood,
-                    "revenue_update": checkin.revenue_update,
-                    "customer_wins": checkin.customer_wins,
-                    "blockers": checkin.blockers
-                },
-                {
-                    "business_stage": user.business_stage,
-                    "primary_goal": user.primary_goal,
-                    "accountability_style": user.accountability_style
-                },
-                business_metrics
-            )
-            analysis_text = analysis["analysis"]
-        else:
-            analysis = sage_crew.quick_checkin_analysis(
-                {
-                    "energy_level": checkin.energy_level,
-                    "avoiding_what": checkin.avoiding_what,
-                    "commitment": checkin.commitment,
-                    "mood": checkin.mood
-                },
-                history
-            )
-            analysis_text = analysis["analysis"]
-    except Exception as e:
-        print(f"⚠️  AI analysis failed: {str(e)}")
-        analysis_text = "Check-in recorded. AI analysis temporarily unavailable."
-    
-    new_checkin = models.CheckIn(
-        user_id=user.id,
-        energy_level=checkin.energy_level,
-        avoiding_what=checkin.avoiding_what,
-        commitment=checkin.commitment,
-        mood=checkin.mood,
-        revenue_update=checkin.revenue_update,
-        customer_wins=checkin.customer_wins,
-        blockers=checkin.blockers,
-        ai_analysis=analysis_text
-    )
-    db.add(new_checkin)
-    
-    advice = models.AgentAdvice(
-        user_id=user.id,
-        agent_name="Psychologist",
-        advice=analysis_text,
-        evidence={"checkin": checkin.dict()},
-        interaction_type="checkin"
-    )
-    db.add(advice)
-    
-    db.commit()
-    db.refresh(new_checkin)
-    
-    return {
-        "checkin_id": new_checkin.id,
-        "ai_response": analysis_text,
-        "message": "Check-in recorded successfully"
-    }
-
-
-
-@app.patch("/checkins/{checkin_id}/evening")
-def evening_checkin(
-    checkin_id: int,
-    update: CheckInUpdate,
-    db: Session = Depends(get_db)
-):
-    # This endpoint is fine, it uses checkin_id
-    checkin = db.query(models.CheckIn).filter(
-        models.CheckIn.id == checkin_id
-    ).first()
-    
-    if not checkin:
-        raise HTTPException(status_code=404, detail="Check-in not found")
-    
-    # ... (rest of logic is correct)
-    checkin.shipped = update.shipped
-    checkin.excuse = update.excuse
-    db.commit()
-    
-    feedback = sage_crew.evening_checkin_review(
-        checkin.commitment,
-        update.shipped,
-        update.excuse
-    )
-    
-    return {
-        "message": "Evening check-in recorded",
-        "ai_feedback": feedback["feedback"]
-    }
-
-@app.get("/checkins/{email}", response_model=List[CheckInResponse]) # CHANGED
-def get_checkins(
-    email: str, # CHANGED
-    limit: int = 30,
-    db: Session = Depends(get_db)
-):
-    user = get_user_by_email_lookup(email, db) # CHANGED
-    
-    checkins = db.query(models.CheckIn).filter(
-        models.CheckIn.user_id == user.id
-    ).order_by(models.CheckIn.timestamp.desc()).limit(limit).all()
-    
-    return checkins
 
 @app.get("/advice/{email}", response_model=List[AgentAdviceResponse]) # CHANGED
 def get_advice(email: str, limit: int = 20, db: Session = Depends(get_db)): # CHANGED
@@ -492,7 +248,8 @@ def get_dashboard(identifier: str, db: Session = Depends(get_db)):
             "total_checkins": total_checkins,
             "commitments_kept": commitments_kept,
             "success_rate": (commitments_kept / total_checkins * 100) if total_checkins > 0 else 0,
-            "avg_energy": round(avg_energy, 1)
+            "avg_energy": round(avg_energy, 1),
+            "current_streak": user.current_streak
         },
         "recent_advice": [
             {
@@ -614,6 +371,11 @@ def create_life_decision(
     print(f"📝 Life event created (ID: {life_event.id}), now analyzing...")
     
     try:
+        # Get user's API key and init crew
+        groq_api_key = get_user_groq_key(user.id, db)
+        from crew import SageMentorCrew
+        sage_crew = SageMentorCrew(groq_api_key)
+ 
         analysis = sage_crew.analyze_life_decision(
             {
                 "title": decision.title,
@@ -688,6 +450,11 @@ def reanalyze_life_decision(
     print(f"🔄 Re-analyzing life decision {decision_id}...")
     
     try:
+        # Get user's API key and init crew
+        groq_api_key = get_user_groq_key(user.id, db)
+        from crew import SageMentorCrew
+        sage_crew = SageMentorCrew(groq_api_key)
+ 
         analysis = sage_crew.analyze_life_decision(
             {
                 "title": life_event.description,
@@ -802,6 +569,11 @@ def evaluate_decision(
     # ... (rest of logic is correct)
     user = db.query(models.User).filter(models.User.id == event.user_id).first()
     
+    # Get user's API key and init crew
+    groq_api_key = get_user_groq_key(user.id, db)
+    from crew import SageMentorCrew
+    sage_crew = SageMentorCrew(groq_api_key)
+ 
     re_evaluation = sage_crew.reevaluate_decision(
         event,
         evaluation.get("current_situation", ""),
@@ -960,6 +732,11 @@ def review_commitment(
     shipped_count = sum(1 for c in recent_checkins if c.shipped)
     total_count = len(recent_checkins)
     
+    # Get user's API key and init crew
+    groq_api_key = get_user_groq_key(user.id, db)
+    from crew import SageMentorCrew
+    sage_crew = SageMentorCrew(groq_api_key)
+ 
     feedback = sage_crew.evening_checkin_review(
         checkin.commitment,
         review.shipped,
