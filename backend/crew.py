@@ -7,7 +7,7 @@ from datetime import datetime
 import io
 import sys
 
-class SageMentorCrew:
+class ReflogAdvisoryBoard:
     def __init__(self, groq_api_key: str):
         """Initialize crew with user's Groq API key"""
         if not groq_api_key:
@@ -17,7 +17,7 @@ class SageMentorCrew:
         self.analyst = agents["analyst"]
         self.psychologist = agents["psychologist"]
         self.strategist = agents["strategist"]
-        self.contrarian = agents["contrarian"]
+        self.challenger = agents["challenger"]
     
     def analyze_developer(self, github_data: Dict, checkin_history: List[Dict] = None) -> Dict:
         """Main analysis flow: All agents deliberate on the developer's situation"""
@@ -154,20 +154,20 @@ class SageMentorCrew:
             context=[analyst_task]
         )
         
-        contrarian_task = Task(
+        challenger_task = Task(
             description=f"""Challenge everything said so far:
             
             User Question: "{user_message}"
             
             Your job:
-            1. What assumptions are the user making that might be wrong?
+            1. What assumptions are the founder making that might be wrong?
             2. What if the OPPOSITE of what they're asking is true?
             3. What uncomfortable truth are they not ready to hear?
-            4. Play devil's advocate ruthlessly
+            4. Ask the questions their advisors won't ask
             
             Ask the hard questions. No sugar coating.""",
-            agent=self.contrarian,
-            expected_output="Contrarian perspective challenging core assumptions",
+            agent=self.challenger,
+            expected_output="Challenger perspective questioning core assumptions",
             context=[analyst_task, psychologist_task]
         )
         
@@ -177,7 +177,7 @@ class SageMentorCrew:
             User Question: "{user_message}"
             
             Your job:
-            1. Synthesize Analyst, Psychologist, and Contrarian perspectives
+            1. Synthesize Analyst, Psychologist, and Challenger perspectives
             2. Give ONE clear, direct answer to their question
             3. Provide 2-3 specific, immediate actions (with timeframes)
             4. Call out any BS in their question or underlying assumptions
@@ -186,12 +186,12 @@ class SageMentorCrew:
             Be brutally specific. No vague advice. Include deadlines and metrics.""",
             agent=self.strategist,
             expected_output="Actionable response with specific steps and timeframes",
-            context=[analyst_task, psychologist_task, contrarian_task]
+            context=[analyst_task, psychologist_task, challenger_task]
         )
         
         crew = Crew(
-            agents=[self.analyst, self.psychologist, self.contrarian, self.strategist],
-            tasks=[analyst_task, psychologist_task, contrarian_task, strategist_task],
+            agents=[self.analyst, self.psychologist, self.challenger, self.strategist],
+            tasks=[analyst_task, psychologist_task, challenger_task, strategist_task],
             process=Process.sequential,
             verbose=True
         )
@@ -207,7 +207,7 @@ class SageMentorCrew:
             "debate": [
                 {"agent": "Analyst", "perspective": "Data-driven reality check", "color": "blue"},
                 {"agent": "Psychologist", "perspective": "Underlying psychology", "color": "purple"},
-                {"agent": "Contrarian", "perspective": "Challenging assumptions", "color": "red"},
+                {"agent": "Challenger", "perspective": "Questioning assumptions", "color": "red"},
                 {"agent": "Strategist", "perspective": "Actionable synthesis", "color": "green"}
             ],
             "key_insights": self._extract_key_points(str(result)),
@@ -237,8 +237,8 @@ class SageMentorCrew:
                     current_agent = "Analyst"
                 elif "Developer Psychologist" in line:
                     current_agent = "Psychologist"
-                elif "Devil's Advocate" in line:
-                    current_agent = "Contrarian"
+                elif "The Challenger" in line or "Challenger" in line:
+                    current_agent = "Challenger"
                 elif "Strategic Advisor" in line:
                     current_agent = "Strategist"
                 
@@ -428,12 +428,12 @@ class SageMentorCrew:
             4. Pattern recognition: Is this a recurring behavior?
             
             Keep it short but impactful. One or two sentences.""",
-            agent=self.contrarian,
+            agent=self.challenger,
             expected_output="Brief, direct feedback on the day's outcome"
         )
         
         crew = Crew(
-            agents=[self.contrarian],
+            agents=[self.challenger],
             tasks=[review_task],
             process=Process.sequential,
             verbose=False

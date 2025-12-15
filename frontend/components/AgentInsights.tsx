@@ -20,7 +20,7 @@ export default function AgentInsights({ advice }: AgentInsightsProps) {
       case 'analyst':
         return <BarChart className="w-5 h-5" />
       case 'psychologist':
-      case 'contrarian': // Added Contrarian to use Brain icon too
+      case 'challenger': // The Challenger uses Brain icon
         return <Brain className="w-5 h-5" />
       case 'strategist':
         return <Lightbulb className="w-5 h-5" />
@@ -32,10 +32,10 @@ export default function AgentInsights({ advice }: AgentInsightsProps) {
 
   // Updated agent colors to use the new purple gradient
   const getAgentColorGradient = (agentName: string) => {
-     // Use purple gradient for Analyst, Psychologist, Strategist. Keep Red/Orange for Contrarian.
-     switch (agentName.toLowerCase()) {
-      case 'contrarian':
-        return 'from-red-600 to-orange-600' // Keep contrast for contrarian
+    // Use purple gradient for Analyst, Psychologist, Strategist. Keep Red/Orange for Challenger.
+    switch (agentName.toLowerCase()) {
+      case 'challenger':
+        return 'from-red-600 to-orange-600' // Keep contrast for challenger
       case 'analyst':
       case 'psychologist':
       case 'strategist':

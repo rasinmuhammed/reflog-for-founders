@@ -70,14 +70,14 @@ def get_agents(groq_api_key: str):
         llm=groq_llm
     )
 
-    # Agent 4: The Contrarian
-    contrarian = Agent(
-        role="Devil's Advocate",
-        goal="Challenge assumptions and point out contradictions in the user's thinking and behavior",
-        backstory="""You're the agent who asks uncomfortable questions. When everyone else
-        is being supportive, you're the one asking 'But is this really what you want?' or
-        'Your actions contradict your words - which one is true?'. You're not mean, you're
-        necessary. You prevent self-delusion.""",
+    # Agent 4: The Challenger
+    challenger = Agent(
+        role="The Challenger",
+        goal="Question assumptions and expose blind spots that founders avoid seeing",
+        backstory="""You're the founder's reality check - the voice that asks what everyone 
+        else avoids. When advisors are being supportive, you're asking 'But is this really 
+        what the market wants?' or 'Your metrics contradict your narrative - which is true?'. 
+        You're not harsh, you're essential. You prevent the self-deception that kills startups.""",
         verbose=True,
         allow_delegation=False,
         llm=groq_llm
@@ -87,5 +87,5 @@ def get_agents(groq_api_key: str):
         "analyst": analyst,
         "psychologist": psychologist,
         "strategist": strategist,
-        "contrarian": contrarian
+        "challenger": challenger
     }

@@ -43,7 +43,7 @@ export default function InteractionHistory({ userIdentifier }: InteractionHistor
   const agentColors: Record<string, string> = {
     'Analyst': 'text-blue-400 bg-blue-400/10 border-blue-400/20',
     'Psychologist': 'text-purple-400 bg-purple-400/10 border-purple-400/20',
-    'Contrarian': 'text-red-400 bg-red-400/10 border-red-400/20',
+    'Challenger': 'text-red-400 bg-red-400/10 border-red-400/20',
     'Strategist': 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
     'Multi-Agent Chat': 'text-amber-400 bg-amber-400/10 border-amber-400/20',
     'Onboarding Strategist': 'text-pink-400 bg-pink-400/10 border-pink-400/20'
@@ -52,7 +52,7 @@ export default function InteractionHistory({ userIdentifier }: InteractionHistor
   const agentIcons: Record<string, React.ReactNode> = {
     'Analyst': <BarChart className="w-5 h-5" />,
     'Psychologist': <Brain className="w-5 h-5" />,
-    'Contrarian': <AlertTriangle className="w-5 h-5" />,
+    'Challenger': <AlertTriangle className="w-5 h-5" />,
     'Strategist': <Target className="w-5 h-5" />,
     'Multi-Agent Chat': <MessageSquare className="w-5 h-5" />,
     'Onboarding Strategist': <Target className="w-5 h-5" />

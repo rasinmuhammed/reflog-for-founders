@@ -18,6 +18,12 @@ import CommitmentCalendar from './CommitmentCalendar'
 import NotificationSettings from './NotificationSettings'
 import ApiKeySetup from './ApiKeySetup'
 import Setting from './Settings'
+import MetricsInput from './MetricsInput'
+import FounderScore from './FounderScore'
+import TimeAllocation from './TimeAllocation'
+import WeeklyReview from './WeeklyReview'
+import QuickCheckin from './QuickCheckin'
+import AvoidancePatterns from './AvoidancePatterns'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -68,12 +74,13 @@ interface DashboardData {
   }>
 }
 
-type TabType = 'overview' | 'chat' | 'commitments' | 'decisions' | 'history'
+type TabType = 'overview' | 'chat' | 'commitments' | 'time' | 'weekly' | 'decisions' | 'history'
 
 export default function Dashboard({ userIdentifier }: DashboardProps) {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCheckin, setShowCheckin] = useState(false)
+  const [showQuickCheckin, setShowQuickCheckin] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -167,160 +174,86 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
   const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
     { id: 'overview', label: 'Overview', icon: Target },
     { id: 'chat', label: 'Chat', icon: MessageCircle },
-    { id: 'commitments', label: 'Commitments', icon: CalendarIcon },
-    { id: 'decisions', label: 'Decisions', icon: BookOpen },
+    { id: 'commitments', label: 'Ship', icon: CalendarIcon },
+    { id: 'time', label: 'Time', icon: TrendingUp },
+    { id: 'weekly', label: 'Weekly', icon: BookOpen },
+    { id: 'decisions', label: 'Decisions', icon: Brain },
     { id: 'history', label: 'History', icon: History }
   ]
 
   return (
-    <div className="min-h-screen bg-[#000000] text-[#FBFAEE]">
+    <div className="min-h-screen bg-gradient-to-br from-[#030303] via-[#0a0a0a] to-[#050505] text-[#FBFAEE]">
       <NotificationBanner
         userIdentifier={userIdentifier}
         onReviewClick={() => setActiveTab('commitments')}
       />
 
-      {/* Header */}
-      <header className="bg-[#000000]/80 border-b border-[#242424]/50 sticky top-0 z-40 backdrop-blur-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo and User Info - REMOVED LOGO, KEPT USER INFO */}
-            <div className="flex items-center space-x-4">
-              <div>
-                <h1 className="text-xl font-bold text-[#FBFAEE]">
-                  Dashboard
-                </h1>
-                <p className="text-xs text-[#FBFAEE]/60">
-                  {data.user.full_name || data.user.email}
-                </p>
-              </div>
-            </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-1 bg-[#242424]/40 rounded-full p-1 border border-[#242424]/60">
-              {tabs.map((tab) => {
-                const Icon = tab.icon
-                const isActive = activeTab === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 py-2 rounded-full transition-all flex items-center space-x-2 text-sm ${isActive
-                      ? 'bg-[#933DC9]/20 text-[#C488F8] shadow-md ring-1 ring-[#933DC9]/30'
-                      : 'text-[#FBFAEE]/70 hover:text-[#FBFAEE] hover:bg-[#242424]/60'
-                      }`}
-                  >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#C488F8]' : ''}`} />
-                    <span className="font-medium">{tab.label}</span>
-                  </button>
-                )
-              })}
-            </nav>
-
-            {/* Right Side Actions */}
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setShowCheckin(true)}
-                className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-[#933DC9] to-[#53118F] px-5 py-2.5 rounded-xl font-semibold hover:brightness-110 transition-all shadow-lg"
-              >
-                <CalendarIcon className="w-4 h-4" />
-                <span>Daily Check-in</span>
-              </button>
-
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: "w-10 h-10 ring-2 ring-[#933DC9]/40"
-                  }
-                }}
-              />
-              <button
-                onClick={() => setShowSettings(true)}
-                className="p-2 hover:bg-[#242424]/50 rounded-lg transition relative"
-              >
-                <Settings className="w-5 h-5 text-[#FBFAEE]/70" />
-                {!hasGroqKey && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse" />
-                )}
-              </button>
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-[#FBFAEE]/70 hover:text-[#FBFAEE] p-2 hover:bg-[#242424]/50 rounded-xl transition"
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            </div>
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        {/* Premium Tab Bar */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-1 p-1 rounded-2xl bg-gradient-to-r from-[#1a1a1a]/80 to-[#0f0f0f]/80 border border-[#252525]/60 backdrop-blur-sm">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 text-sm font-medium ${isActive
+                    ? 'text-white'
+                    : 'text-[#FBFAEE]/50 hover:text-[#FBFAEE]/80 hover:bg-white/5'
+                    }`}
+                >
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#933DC9]/25 to-[#53118F]/20 rounded-xl border border-[#933DC9]/30" />
+                  )}
+                  <Icon className={`w-4 h-4 relative z-10 ${isActive ? 'text-[#C488F8]' : ''}`} />
+                  <span className="hidden sm:inline relative z-10">{tab.label}</span>
+                </button>
+              )
+            })}
           </div>
 
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden pb-4 pt-2 border-t border-[#242424]/50">
-              <div className="space-y-1">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon
-                  const isActive = activeTab === tab.id
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveTab(tab.id)
-                        setMobileMenuOpen(false)
-                      }}
-                      className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all text-base ${isActive
-                        ? 'bg-[#933DC9]/20 text-[#C488F8]'
-                        : 'text-[#FBFAEE]/80 hover:bg-[#242424]/50 hover:text-[#FBFAEE]'
-                        }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{tab.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-              <button
-                onClick={() => {
-                  setShowCheckin(true)
-                  setMobileMenuOpen(false)
-                }}
-                className="w-full mt-3 bg-gradient-to-r from-[#933DC9] to-[#53118F] text-[#FBFAEE] px-4 py-3 rounded-xl font-semibold flex items-center justify-center space-x-2"
-              >
-                <CalendarIcon className="w-5 h-5" />
-                <span>Daily Check-in</span>
-              </button>
-            </div>
-          )}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-2.5 rounded-xl bg-[#1a1a1a]/60 border border-[#252525]/50 hover:bg-[#252525]/60 hover:border-[#333] transition-all relative group"
+          >
+            <Settings className="w-5 h-5 text-[#FBFAEE]/60 group-hover:text-[#FBFAEE] transition" />
+            {!hasGroqKey && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full ring-2 ring-[#0a0a0a] animate-pulse" />
+            )}
+          </button>
         </div>
-      </header>
 
-      {!hasGroqKey && !checkingKey && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl p-4 shadow-lg">
+        {/* API Key Warning */}
+        {!hasGroqKey && !checkingKey && (
+          <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/30 rounded-xl p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <AlertCircle className="w-6 h-6 text-white" />
+                <AlertCircle className="w-5 h-5 text-yellow-400" />
                 <div>
-                  <p className="text-white font-semibold">AI Features Disabled</p>
-                  <p className="text-white/90 text-sm">Add your Groq API key to enable AI analysis</p>
+                  <p className="text-yellow-300 font-medium text-sm">AI Features Disabled</p>
+                  <p className="text-yellow-300/70 text-xs">Add your Groq API key to enable AI</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowApiKeySetup(true)}
-                className="bg-white text-orange-600 px-6 py-2 rounded-xl font-semibold hover:bg-gray-100 transition"
+                className="bg-yellow-500/20 text-yellow-300 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-yellow-500/30 transition"
               >
-                Setup Now
+                Setup
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Stats Cards */}
             <div className="lg:col-span-1 space-y-6">
+              {/* Founder Score Card */}
+              <FounderScore userIdentifier={userIdentifier} />
+
               {/* Business Stage Card */}
               {data.user.business_stage && (
                 <div className="bg-[#242424] border border-[#242424]/50 rounded-2xl shadow-xl p-6">
@@ -373,7 +306,7 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
 
               {/* Accountability Stats */}
               <div className="bg-[#242424] border border-[#242424]/50 rounded-2xl shadow-xl p-6">
-                <h3 className="text-lg font-bold text-[#FBFAEE] mb-4">Accountability</h3>
+                <h3 className="text-lg font-bold text-[#FBFAEE] mb-4">Execution Tracker</h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-gradient-to-br from-[#933DC9]/20 to-[#53118F]/20 border border-[#933DC9]/30 rounded-xl p-4 text-center">
@@ -393,19 +326,24 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-[#000000]/40 rounded-lg p-3 text-center">
                       <div className="text-2xl font-bold text-[#FBFAEE]">{data.stats.total_checkins}</div>
-                      <div className="text-xs text-[#FBFAEE]/60">Check-ins</div>
+                      <div className="text-xs text-[#FBFAEE]/60">Reality Checks</div>
                     </div>
                     <div className="bg-[#000000]/40 rounded-lg p-3 text-center">
                       <div className="text-2xl font-bold text-green-400">{data.stats.commitments_kept}</div>
-                      <div className="text-xs text-[#FBFAEE]/60">Kept</div>
+                      <div className="text-xs text-[#FBFAEE]/60">Shipped</div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column - Recent Activity */}
+            {/* Right Column - Metrics & Analysis */}
             <div className="lg:col-span-2 space-y-6">
+              <MetricsInput
+                userIdentifier={userIdentifier}
+                onUpdate={() => setRefreshKey(prev => prev + 1)}
+              />
+              <AvoidancePatterns userIdentifier={userIdentifier} />
               <AgentInsights advice={data.recent_advice} />
             </div>
           </div>
@@ -424,6 +362,24 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
               onReviewComplete={() => setRefreshKey(prev => prev + 1)}
             />
             <CommitmentCalendar userIdentifier={userIdentifier} />
+          </div>
+        )}
+
+        {activeTab === 'time' && (
+          <div className="max-w-4xl mx-auto space-y-6">
+            <TimeAllocation
+              userIdentifier={userIdentifier}
+              statedPriority={data?.user.primary_goal?.toLowerCase().includes('revenue') ? 'revenue' : 'product'}
+            />
+          </div>
+        )}
+
+        {activeTab === 'weekly' && (
+          <div className="max-w-3xl mx-auto">
+            <WeeklyReview
+              userIdentifier={userIdentifier}
+              onComplete={() => setRefreshKey(prev => prev + 1)}
+            />
           </div>
         )}
 
@@ -463,6 +419,30 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
           }}
           onClose={() => setShowApiKeySetup(false)}
           required={!hasGroqKey}
+        />
+      )}
+
+      {/* Premium Floating Check-in Button */}
+      <button
+        onClick={() => setShowQuickCheckin(true)}
+        className="fixed bottom-8 right-8 group z-50"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-[#933DC9] to-[#53118F] rounded-2xl blur-xl opacity-50 group-hover:opacity-70 transition-opacity" />
+        <div className="relative flex items-center gap-2.5 bg-gradient-to-r from-[#933DC9] to-[#53118F] px-6 py-4 rounded-2xl font-semibold text-white shadow-2xl shadow-purple-900/40 group-hover:shadow-purple-900/60 transition-all group-hover:scale-[1.02]">
+          <div className="p-1 bg-white/20 rounded-lg">
+            <CalendarIcon className="w-5 h-5" />
+          </div>
+          <span className="hidden sm:inline">Reality Check</span>
+          <span className="sm:hidden">Check-in</span>
+        </div>
+      </button>
+
+      {/* Quick Check-in Modal */}
+      {showQuickCheckin && (
+        <QuickCheckin
+          userIdentifier={userIdentifier}
+          onComplete={() => setRefreshKey(prev => prev + 1)}
+          onClose={() => setShowQuickCheckin(false)}
         />
       )}
     </div>

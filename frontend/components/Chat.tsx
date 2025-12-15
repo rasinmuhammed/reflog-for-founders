@@ -67,7 +67,7 @@ export default function Chat({ userIdentifier }: ChatProps) {
   const agentColors: Record<string, string> = {
     'Analyst': 'from-[#933DC9] to-[#53118F]', // Orchid to Violet
     'Psychologist': 'from-[#53118F] to-[#933DC9]', // Violet to Orchid
-    'Contrarian': 'from-red-500 to-orange-500', // Keep contrast for Contrarian
+    'Challenger': 'from-red-500 to-orange-500', // Keep contrast for Challenger
     'Strategist': 'from-[#933DC9] to-[#53118F]' // Orchid to Violet
   }
 
@@ -75,7 +75,7 @@ export default function Chat({ userIdentifier }: ChatProps) {
   const agentIcons: Record<string, React.ReactNode> = {
     'Analyst': <BarChart className="w-5 h-5" />,
     'Psychologist': <Brain className="w-5 h-5" />,
-    'Contrarian': <AlertTriangle className="w-5 h-5" />,
+    'Challenger': <AlertTriangle className="w-5 h-5" />,
     'Strategist': <Target className="w-5 h-5" />
   }
 
@@ -363,7 +363,7 @@ export default function Chat({ userIdentifier }: ChatProps) {
                 <div>
                   <p className="text-[#FBFAEE]/90 font-medium">Agents are deliberating...</p>
                   <p className="text-xs text-[#FBFAEE]/60 mt-1">
-                    Analyst, Psychologist, Contrarian, and Strategist are debating your question
+                    Analyst, Psychologist, Challenger, and Strategist are debating your question
                   </p>
                 </div>
               </div>

@@ -1,16 +1,33 @@
-fastapi
-uvicorn
-crewai
-crewai-tools
-litellm
-sqlalchemy
-pydantic
-python-dotenv
-PyGithub
-python-multipart
-httpx
-psycopg2-binary
-resend
-apscheduler  
-redis
-celery
+# Core Framework
+fastapi==0.109.2
+uvicorn==0.27.1
+pydantic==2.6.1
+
+# Database
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# AI/LLM
+crewai==0.28.8
+crewai-tools==0.0.15
+litellm==1.28.0
+
+# Security & Encryption
+cryptography==42.0.2
+python-multipart==0.0.9
+
+# HTTP & APIs
+httpx==0.26.0
+PyGithub==2.1.1
+
+# Email
+resend==0.8.0
+
+# Background Tasks
+celery==5.3.6
+redis==5.0.1
+apscheduler==3.10.4
+
+# Utilities
+python-dotenv==1.0.1

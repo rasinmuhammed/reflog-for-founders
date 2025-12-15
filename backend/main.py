@@ -15,30 +15,42 @@ from models import (
     TimeAllocationCreate, TimeAllocationResponse,
     NotificationPreferences, NotificationPreferencesResponse,
     GroqApiKeyUpdate
-    
 )
 from github_integration import GitHubAnalyzer
-from crew import SageMentorCrew
-from datetime import datetime, timedelta
-from pydantic import BaseModel
+from crew import ReflogAdvisoryBoard
 from datetime import datetime, timedelta, time
-from typing import Optional
+from pydantic import BaseModel
 from email_service import EmailService
-from routers import users, checkins, score
+from encryption import encrypt_value, decrypt_value, is_encrypted
+from middleware.rate_limit import RateLimitMiddleware
+from routers import users, checkins, score, gamification
 
-# This import was missing from your file, needed for founder agents
+# Import founder agents with fallback
 try:
     from founder_agents import get_founder_agents
 except ImportError:
     print("WARNING: founder_agents.py not found. Using default agents.")
-    # Fallback or error if necessary, here we just use sage_crew
     pass
 
-
+# Initialize database
 init_db()
 
-app = FastAPI(title="Reflog AI Mentor API", version="1.0.0")
+# Create FastAPI app
+app = FastAPI(
+    title="Reflog AI Mentor API", 
+    version="1.0.1",
+    description="AI accountability platform for founders"
+)
 
+# Add Rate Limiting Middleware (BEFORE CORS)
+app.add_middleware(
+    RateLimitMiddleware,
+    general_limit=100,      # 100 requests/minute for general
+    llm_limit=20,           # 20 requests/minute for LLM endpoints
+    auth_limit=10           # 10 requests/minute for auth
+)
+
+# Add CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -51,16 +63,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from routers import users, checkins, score, gamification
- 
+# Include routers
 app.include_router(users.router)
 app.include_router(checkins.router)
 app.include_router(score.router)
 app.include_router(gamification.router)
 
+# Initialize GitHub analyzer (single instance)
 github_analyzer = GitHubAnalyzer()
-github_analyzer = GitHubAnalyzer()
- # sage_crew removed - instantiated per request
+
 
 
 # ==============================================================================
@@ -78,7 +89,7 @@ def get_user_by_email_lookup(email: str, db: Session):
     return user
 
 def get_user_groq_key(user_id: int, db: Session) -> str:
-    """Get user's Groq API key or raise error"""
+    """Get user's Groq API key (decrypted) or raise error"""
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -89,7 +100,13 @@ def get_user_groq_key(user_id: int, db: Session) -> str:
             detail="Groq API key not configured. Please add your API key in settings."
         )
     
-    return user.groq_api_key
+    # Decrypt the API key before returning
+    try:
+        if is_encrypted(user.groq_api_key):
+            return decrypt_value(user.groq_api_key)
+        return user.groq_api_key  # Backwards compatibility for unencrypted keys
+    except Exception:
+        return user.groq_api_key  # Fallback
 
 # ==============================================================================
 # User & Onboarding Endpoints (MOVED TO ROUTERS)
@@ -312,10 +329,10 @@ async def chat_with_mentor(
     }
     
     # Create crew with user's API key
-    from crew import SageMentorCrew
-    sage_crew = SageMentorCrew(groq_api_key)
+    from crew import ReflogAdvisoryBoard
+    advisory_board = ReflogAdvisoryBoard(groq_api_key)
     
-    deliberation = sage_crew.chat_deliberation(
+    deliberation = advisory_board.chat_deliberation(
         message.message,
         user_context,
         message.context
@@ -373,10 +390,10 @@ def create_life_decision(
     try:
         # Get user's API key and init crew
         groq_api_key = get_user_groq_key(user.id, db)
-        from crew import SageMentorCrew
-        sage_crew = SageMentorCrew(groq_api_key)
+        from crew import ReflogAdvisoryBoard
+        advisory_board = ReflogAdvisoryBoard(groq_api_key)
  
-        analysis = sage_crew.analyze_life_decision(
+        analysis = advisory_board.analyze_life_decision(
             {
                 "title": decision.title,
                 "description": decision.description,
@@ -452,10 +469,10 @@ def reanalyze_life_decision(
     try:
         # Get user's API key and init crew
         groq_api_key = get_user_groq_key(user.id, db)
-        from crew import SageMentorCrew
-        sage_crew = SageMentorCrew(groq_api_key)
+        from crew import ReflogAdvisoryBoard
+        advisory_board = ReflogAdvisoryBoard(groq_api_key)
  
-        analysis = sage_crew.analyze_life_decision(
+        analysis = advisory_board.analyze_life_decision(
             {
                 "title": life_event.description,
                 "description": context.get("full_description", life_event.description),
@@ -571,10 +588,10 @@ def evaluate_decision(
     
     # Get user's API key and init crew
     groq_api_key = get_user_groq_key(user.id, db)
-    from crew import SageMentorCrew
-    sage_crew = SageMentorCrew(groq_api_key)
+    from crew import ReflogAdvisoryBoard
+    advisory_board = ReflogAdvisoryBoard(groq_api_key)
  
-    re_evaluation = sage_crew.reevaluate_decision(
+    re_evaluation = advisory_board.reevaluate_decision(
         event,
         evaluation.get("current_situation", ""),
         evaluation.get("what_changed", ""),
@@ -734,10 +751,10 @@ def review_commitment(
     
     # Get user's API key and init crew
     groq_api_key = get_user_groq_key(user.id, db)
-    from crew import SageMentorCrew
-    sage_crew = SageMentorCrew(groq_api_key)
+    from crew import ReflogAdvisoryBoard
+    advisory_board = ReflogAdvisoryBoard(groq_api_key)
  
-    feedback = sage_crew.evening_checkin_review(
+    feedback = advisory_board.evening_checkin_review(
         checkin.commitment,
         review.shipped,
         review.excuse
@@ -745,7 +762,7 @@ def review_commitment(
     
     advice = models.AgentAdvice(
         user_id=checkin.user_id,
-        agent_name="Contrarian",
+        agent_name="Challenger",
         advice=feedback["feedback"],
         evidence={
             "commitment": checkin.commitment,
@@ -1037,6 +1054,279 @@ def get_business_metrics(
 # This route seems redundant with the one above it.
 # I'm keeping the one that uses email in the path for consistency.
 # @app.post("/business-metrics") ...
+
+# ==================== UNIFIED METRICS (For MetricsInput Component) ====================
+
+class UnifiedMetricsUpdate(BaseModel):
+    mrr: float = 0
+    customers: int = 0
+    activeUsers: int = 0
+    runway: float = 0
+    churnRate: float = 0
+    salesCalls: int = 0
+    meetingsBooked: int = 0
+
+@app.get("/metrics/{email}")
+def get_unified_metrics(email: str, db: Session = Depends(get_db)):
+    """Get all current metrics for the MetricsInput component"""
+    user = get_user_by_email_lookup(email, db)
+    
+    # Get most recent value for each metric type
+    metric_types = ['mrr', 'customers', 'activeUsers', 'runway', 'churnRate', 'salesCalls', 'meetingsBooked']
+    current = {}
+    history = {}
+    
+    for metric_type in metric_types:
+        # Get latest two entries for calculating change
+        recent = db.query(models.BusinessMetric).filter(
+            models.BusinessMetric.user_id == user.id,
+            models.BusinessMetric.metric_type == metric_type
+        ).order_by(models.BusinessMetric.timestamp.desc()).limit(2).all()
+        
+        if recent:
+            current[metric_type] = recent[0].value
+            if len(recent) > 1:
+                change = recent[0].value - recent[1].value
+                change_pct = (change / recent[1].value * 100) if recent[1].value != 0 else 0
+                history[metric_type] = {
+                    "current": recent[0].value,
+                    "previous": recent[1].value,
+                    "change": change,
+                    "changePercent": round(change_pct, 1)
+                }
+        else:
+            current[metric_type] = 0
+    
+    # Get last update timestamp
+    last_metric = db.query(models.BusinessMetric).filter(
+        models.BusinessMetric.user_id == user.id
+    ).order_by(models.BusinessMetric.timestamp.desc()).first()
+    
+    return {
+        "current": current,
+        "history": history,
+        "lastUpdated": last_metric.timestamp.isoformat() if last_metric else None
+    }
+
+@app.post("/metrics/{email}")
+def save_unified_metrics(email: str, metrics: UnifiedMetricsUpdate, db: Session = Depends(get_db)):
+    """Save all metrics at once from the MetricsInput component"""
+    user = get_user_by_email_lookup(email, db)
+    
+    # Save each metric type
+    metrics_dict = metrics.dict()
+    for metric_type, value in metrics_dict.items():
+        new_metric = models.BusinessMetric(
+            user_id=user.id,
+            metric_type=metric_type,
+            value=float(value),
+            context={"source": "unified_metrics_input"}
+        )
+        db.add(new_metric)
+    
+    db.commit()
+    return {"message": "Metrics saved successfully", "timestamp": datetime.now().isoformat()}
+
+# ==================== FOUNDER SCORE ====================
+
+@app.get("/founder-score/{email}")
+def get_founder_score(email: str, db: Session = Depends(get_db)):
+    """Calculate and return the founder's composite health score"""
+    user = get_user_by_email_lookup(email, db)
+    
+    # 1. Revenue Velocity (30%) - MRR week-over-week change
+    mrr_metrics = db.query(models.BusinessMetric).filter(
+        models.BusinessMetric.user_id == user.id,
+        models.BusinessMetric.metric_type == 'mrr'
+    ).order_by(models.BusinessMetric.timestamp.desc()).limit(2).all()
+    
+    if len(mrr_metrics) >= 2 and mrr_metrics[1].value > 0:
+        mrr_change = ((mrr_metrics[0].value - mrr_metrics[1].value) / mrr_metrics[1].value) * 100
+        revenue_velocity = min(100, max(0, 50 + mrr_change * 5))  # Scale change to 0-100
+    else:
+        revenue_velocity = 50  # Neutral if no data
+    
+    # 2. Execution Rate (30%) - Commitments shipped
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    checkins = db.query(models.CheckIn).filter(
+        models.CheckIn.user_id == user.id,
+        models.CheckIn.timestamp >= thirty_days_ago,
+        models.CheckIn.shipped != None
+    ).all()
+    
+    if checkins:
+        shipped = sum(1 for c in checkins if c.shipped)
+        execution_rate = (shipped / len(checkins)) * 100
+    else:
+        execution_rate = 50  # Neutral if no data
+    
+    # 3. Consistency (20%) - Current streak / 7 days
+    current_streak = user.current_streak or 0
+    consistency = min(100, (current_streak / 7) * 100)
+    
+    # 4. Engagement (20%) - Check-ins in last 7 days
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    recent_checkins = db.query(models.CheckIn).filter(
+        models.CheckIn.user_id == user.id,
+        models.CheckIn.timestamp >= seven_days_ago
+    ).count()
+    engagement = min(100, (recent_checkins / 7) * 100)
+    
+    # Calculate total score
+    total_score = (
+        revenue_velocity * 0.30 +
+        execution_rate * 0.30 +
+        consistency * 0.20 +
+        engagement * 0.20
+    )
+    
+    # Determine trend and generate specific insight
+    components = {
+        'revenue_velocity': revenue_velocity,
+        'execution_rate': execution_rate,
+        'consistency': consistency,
+        'engagement': engagement
+    }
+    lowest = min(components, key=components.get)
+    
+    # Generate specific insight based on weakest area
+    if total_score >= 70:
+        trend = 'up'
+        insight = "Strong execution. Time to 10x what's working."
+    elif total_score >= 50:
+        trend = 'stable'
+        if lowest == 'revenue_velocity':
+            insight = "Revenue is flat. Are you avoiding sales conversations?"
+        elif lowest == 'execution_rate':
+            insight = "Shipping rate is low. Are you overcommitting?"
+        elif lowest == 'consistency':
+            insight = "Consistency is key. Show up every day."
+        else:
+            insight = "Check-in more often. The AI works best with data."
+    else:
+        trend = 'down'
+        if lowest == 'revenue_velocity':
+            insight = "No revenue growth = no business. Time for sales calls."
+        elif lowest == 'execution_rate':
+            insight = "You're not shipping. What are you avoiding?"
+        elif lowest == 'consistency':
+            insight = "Sporadic effort = sporadic results. Build the habit."
+        else:
+            insight = "Start with daily check-ins. Accountability begins there."
+    
+    return {
+        "totalScore": round(total_score, 1),
+        "breakdown": {
+            "revenueVelocity": round(revenue_velocity, 1),
+            "executionRate": round(execution_rate, 1),
+            "consistency": round(consistency, 1),
+            "engagement": round(engagement, 1)
+        },
+        "trend": trend,
+        "insight": insight
+    }
+
+# ==================== TIME ALLOCATION TRACKING ====================
+
+class TimeAllocationEntry(BaseModel):
+    entries: dict  # e.g., {"Product/Building": 4, "Sales/Revenue": 2, ...}
+
+@app.get("/time-allocation/{email}/today")
+def get_today_time_allocation(email: str, db: Session = Depends(get_db)):
+    """Get today's time allocation entries"""
+    user = get_user_by_email_lookup(email, db)
+    
+    today_start = datetime.combine(datetime.now().date(), time.min)
+    today_end = datetime.combine(datetime.now().date(), time.max)
+    
+    # Get today's time entries from business_metrics table with context
+    entries = db.query(models.BusinessMetric).filter(
+        models.BusinessMetric.user_id == user.id,
+        models.BusinessMetric.metric_type == 'time_allocation',
+        models.BusinessMetric.timestamp >= today_start,
+        models.BusinessMetric.timestamp <= today_end
+    ).first()
+    
+    if entries and entries.context:
+        return {"entries": entries.context.get("entries", {})}
+    return {"entries": {}}
+
+@app.post("/time-allocation/{email}")
+def save_time_allocation(email: str, data: TimeAllocationEntry, db: Session = Depends(get_db)):
+    """Save time allocation for today"""
+    user = get_user_by_email_lookup(email, db)
+    
+    today_start = datetime.combine(datetime.now().date(), time.min)
+    today_end = datetime.combine(datetime.now().date(), time.max)
+    
+    # Check if entry exists for today
+    existing = db.query(models.BusinessMetric).filter(
+        models.BusinessMetric.user_id == user.id,
+        models.BusinessMetric.metric_type == 'time_allocation',
+        models.BusinessMetric.timestamp >= today_start,
+        models.BusinessMetric.timestamp <= today_end
+    ).first()
+    
+    total_hours = sum(data.entries.values())
+    
+    if existing:
+        existing.value = total_hours
+        existing.context = {"entries": data.entries, "source": "time_allocation_tracker"}
+    else:
+        new_entry = models.BusinessMetric(
+            user_id=user.id,
+            metric_type='time_allocation',
+            value=total_hours,
+            context={"entries": data.entries, "source": "time_allocation_tracker"}
+        )
+        db.add(new_entry)
+    
+    db.commit()
+    
+    # Calculate priority mismatch insights
+    sales_hours = data.entries.get("Sales/Revenue", 0)
+    product_hours = data.entries.get("Product/Building", 0)
+    
+    mismatch = None
+    if total_hours >= 4:
+        sales_pct = (sales_hours / total_hours * 100) if total_hours > 0 else 0
+        product_pct = (product_hours / total_hours * 100) if total_hours > 0 else 0
+        
+        if sales_pct < 20 and product_pct > 60:
+            mismatch = "Heavy product focus, light on sales. Classic founder trap."
+        elif sales_pct > 50:
+            mismatch = "Great sales focus! Make sure product doesn't slip."
+    
+    return {
+        "message": "Time logged successfully",
+        "total_hours": total_hours,
+        "mismatch_warning": mismatch
+    }
+
+@app.get("/time-allocation/{email}/weekly")
+def get_weekly_time_allocation(email: str, db: Session = Depends(get_db)):
+    """Get weekly time allocation summary"""
+    user = get_user_by_email_lookup(email, db)
+    
+    week_ago = datetime.now() - timedelta(days=7)
+    
+    entries = db.query(models.BusinessMetric).filter(
+        models.BusinessMetric.user_id == user.id,
+        models.BusinessMetric.metric_type == 'time_allocation',
+        models.BusinessMetric.timestamp >= week_ago
+    ).all()
+    
+    # Aggregate by category
+    totals = {}
+    for entry in entries:
+        if entry.context and "entries" in entry.context:
+            for category, hours in entry.context["entries"].items():
+                totals[category] = totals.get(category, 0) + hours
+    
+    return {
+        "weekly_totals": totals,
+        "days_tracked": len(entries)
+    }
 
 # ==================== WEEKLY REVIEWS (Refactored for Email) ====================
 
@@ -1561,7 +1851,7 @@ def set_groq_api_key(
     key_data: GroqApiKeyUpdate,
     db: Session = Depends(get_db)
 ):
-    """Set or update user's Groq API key"""
+    """Set or update user's Groq API key (encrypted)"""
     user = get_user_by_email_lookup(email, db)
     
     # Validate the API key format (starts with gsk_)
@@ -1575,15 +1865,15 @@ def set_groq_api_key(
     try:
         from agents import create_groq_llm
         test_llm = create_groq_llm(key_data.groq_api_key)
-        # Simple validation - if it doesn't throw an error, it's likely valid
     except Exception as e:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid Groq API key: {str(e)}"
         )
     
-    # Save the API key (in production, encrypt this!)
-    user.groq_api_key = key_data.groq_api_key
+    # Encrypt and save the API key
+    encrypted_key = encrypt_value(key_data.groq_api_key)
+    user.groq_api_key = encrypted_key
     db.commit()
     
     return {
@@ -1619,6 +1909,168 @@ def delete_groq_api_key(
         "message": "Groq API key deleted successfully",
         "has_key": False
     }
+
+
+# ==================== QUICK CHECK-IN ENDPOINTS ====================
+
+class QuickCommitment(BaseModel):
+    commitment: str
+
+class QuickReview(BaseModel):
+    shipped: bool
+    excuse: Optional[str] = None
+
+@app.get("/quick-checkin/{email}/today")
+def get_today_commitment(email: str, db: Session = Depends(get_db)):
+    """Get today's quick commitment if exists"""
+    user = get_user_by_email_lookup(email, db)
+    today = datetime.now().date()
+    
+    checkin = db.query(models.CheckIn).filter(
+        models.CheckIn.user_id == user.id,
+        func.date(models.CheckIn.timestamp) == today
+    ).order_by(models.CheckIn.timestamp.desc()).first()
+    
+    if not checkin:
+        return {"commitment": None}
+    
+    return {
+        "id": checkin.id,
+        "commitment": checkin.did_i_ship_yesterday,  # Reusing field for commitment
+        "timestamp": checkin.timestamp.isoformat(),
+        "shipped": checkin.shipped_yesterday
+    }
+
+@app.post("/quick-checkin/{email}")
+def create_quick_commitment(
+    email: str, 
+    data: QuickCommitment, 
+    db: Session = Depends(get_db)
+):
+    """Create today's one-thing commitment"""
+    user = get_user_by_email_lookup(email, db)
+    
+    # Create check-in with commitment
+    checkin = models.CheckIn(
+        user_id=user.id,
+        did_i_ship_yesterday=data.commitment,  # Store commitment here
+        shipped_yesterday=None,  # Not yet reviewed
+        energy_level=5,  # Default
+        focus_level=5
+    )
+    db.add(checkin)
+    db.commit()
+    db.refresh(checkin)
+    
+    # Generate AI response if user has API key
+    ai_response = None
+    try:
+        if user.groq_api_key:
+            from encryption import decrypt_value, is_encrypted
+            key = decrypt_value(user.groq_api_key) if is_encrypted(user.groq_api_key) else user.groq_api_key
+            advisory = ReflogAdvisoryBoard(key)
+            result = advisory.quick_feedback(data.commitment)
+            ai_response = result.get("feedback", "Committed. Now execute.")
+    except:
+        pass
+    
+    return {
+        "id": checkin.id,
+        "commitment": data.commitment,
+        "ai_response": ai_response or "Locked in. No excuses."
+    }
+
+@app.post("/quick-checkin/{email}/review")
+def review_quick_commitment(
+    email: str,
+    data: QuickReview,
+    db: Session = Depends(get_db)
+):
+    """Review today's commitment - did you ship it?"""
+    user = get_user_by_email_lookup(email, db)
+    today = datetime.now().date()
+    
+    checkin = db.query(models.CheckIn).filter(
+        models.CheckIn.user_id == user.id,
+        func.date(models.CheckIn.timestamp) == today
+    ).order_by(models.CheckIn.timestamp.desc()).first()
+    
+    if not checkin:
+        raise HTTPException(status_code=404, detail="No commitment found for today")
+    
+    checkin.shipped_yesterday = data.shipped
+    if data.excuse:
+        checkin.blocker = data.excuse
+    db.commit()
+    
+    # Update gamification
+    try:
+        from routers.gamification import award_xp
+        if data.shipped:
+            award_xp(user.id, 20, "shipped_commitment", db)
+        else:
+            award_xp(user.id, 5, "honest_review", db)
+    except:
+        pass
+    
+    # Generate feedback
+    feedback = "Great execution!" if data.shipped else "Tomorrow is a new opportunity."
+    
+    return {
+        "shipped": data.shipped,
+        "feedback": feedback
+    }
+
+
+# ==================== PATTERN ANALYSIS ENDPOINTS ====================
+
+from pattern_analysis import analyze_avoidance_patterns, calculate_progress_comparison
+
+@app.get("/analysis/{email}/patterns")
+def get_user_patterns(email: str, db: Session = Depends(get_db)):
+    """Get avoidance patterns for a user"""
+    user = get_user_by_email_lookup(email, db)
+    
+    # Get last 30 days of check-ins
+    cutoff = datetime.now() - timedelta(days=30)
+    checkins = db.query(models.CheckIn).filter(
+        models.CheckIn.user_id == user.id,
+        models.CheckIn.timestamp >= cutoff
+    ).order_by(models.CheckIn.timestamp.desc()).all()
+    
+    checkin_data = [
+        {
+            "commitment": c.did_i_ship_yesterday,
+            "shipped": c.shipped_yesterday,
+            "excuse": c.blocker,
+            "timestamp": c.timestamp.isoformat()
+        }
+        for c in checkins
+    ]
+    
+    return analyze_avoidance_patterns(checkin_data)
+
+@app.get("/analysis/{email}/progress")
+def get_user_progress(email: str, db: Session = Depends(get_db)):
+    """Get progress comparison for a user"""
+    user = get_user_by_email_lookup(email, db)
+    
+    # Get last 5 weeks of check-ins
+    cutoff = datetime.now() - timedelta(weeks=5)
+    checkins = db.query(models.CheckIn).filter(
+        models.CheckIn.user_id == user.id,
+        models.CheckIn.timestamp >= cutoff
+    ).order_by(models.CheckIn.timestamp.desc()).all()
+    
+    checkin_data = [
+        {
+            "shipped": c.shipped_yesterday,
+            "timestamp": c.timestamp.isoformat()
+        }
+        for c in checkins
+    ]
+    
+    return calculate_progress_comparison(checkin_data)
 
 # Update the main startup to include scheduler
 if __name__ == "__main__":
