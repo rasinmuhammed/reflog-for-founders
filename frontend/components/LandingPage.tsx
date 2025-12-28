@@ -1,294 +1,394 @@
 'use client'
 
-import React from 'react'; // Import React for useEffect and useState if needed later
-import { Brain, Github, Target, TrendingUp, Zap, Shield, Users, ArrowRight, CheckCircle, MessageCircle, BookOpen, Calendar } from 'lucide-react';
-import { SignInButton, SignUpButton } from '@clerk/nextjs';
+import { SignInButton, SignUpButton } from '@clerk/nextjs'
+import { motion } from 'framer-motion'
+import {
+  Sparkles, Brain, Target, Calendar,
+  TrendingUp, Shield, Zap, ChevronRight,
+  Check, MessageSquare
+} from 'lucide-react'
 
 export default function LandingPage() {
-  // --- Updated Features with "AI Mentor" Vibe ---
-  const features = [
-    {
-      icon: <Brain className="w-6 h-6" />,
-      title: "Your Personal AI Council", // Changed
-      description: "Specialized AI agents debate *your* challenges and goals to forge a clear path forward." // Changed
-    },
-    {
-      icon: <Github className="w-6 h-6" />,
-      title: "Uncover Your Real Habits", // Changed
-      description: "Analyzes commit history and code structure to show you the patterns you can't see yourself." // Changed
-    },
-    {
-      icon: <Target className="w-6 h-6" />,
-      title: "Commitment Tracking",
-      description: "Log daily goals and review outcomes. Reflog holds you accountable, no excuses accepted." // Kept as-is, it's perfect
-    },
-    {
-      icon: <TrendingUp className="w-6 h-6" />,
-      title: "Break Your Bad Cycles", // Changed
-      description: "Identifies cycles of procrastination, 'tutorial hell', and perfectionism blocking your path to mastery." // Changed
-    },
-    {
-      icon: <MessageCircle className="w-6 h-6" />,
-      title: "Unfiltered AI Dialogue",
-      description: "Ask tough questions. Get brutally honest, data-driven feedback designed for real growth." // Kept as-is, also perfect
-    },
-    {
-      icon: <BookOpen className="w-6 h-6" />,
-      title: "Decision & Wisdom Log", // Changed
-      description: "Chronicle key decisions, analyze outcomes with your AI mentor, and build a playbook of lasting wisdom." // Changed
-    }
-  ];
-
-  // Testimonials are already great, no changes needed
-  const testimonials = [
-    {
-      quote: "Reflog doesn't coddle you. It pointed out my pattern of abandoning projects right before launch. Finally shipped!",
-      author: "Alex Chen",
-      role: "Full-stack Developer"
-    },
-    {
-      quote: "Seeing the AI agents debate my situation gave me perspectives I hadn't considered. Truly insightful.",
-      author: "Sarah Kim",
-      role: "Software Engineer @ TechCorp"
-    },
-    {
-      quote: "The daily check-ins combined with GitHub analysis are powerful. Reflog keeps me focused on what matters: shipping.",
-      author: "Marcus Johnson",
-      role: "Indie SaaS Founder"
-    }
-  ];
-
   return (
-    // Main background: Black
-    <div className="min-h-screen bg-[#000000] text-[#FBFAEE]">
-
-      {/* Hero Section */}
-      <div className="relative overflow-hidden isolate">
-        {/* Modern Background Effect */}
-        <svg
-          viewBox="0 0 1024 1024"
-          className="absolute left-1/2 top-1/2 -z-10 h-[64rem] w-[64rem] -translate-y-1/2 [mask-image:radial-gradient(closest-side,white,transparent)] sm:left-full sm:-ml-80 lg:left-1/2 lg:ml-0 lg:-translate-x-1/2 lg:translate-y-0"
-          aria-hidden="true"
-        >
-          <circle cx={512} cy={512} r={512} fill="url(#gradient-hero)" fillOpacity="0.4" />
-          <defs>
-            <radialGradient id="gradient-hero">
-              <stop stopColor="#933DC9" /> {/* Dark Orchid */}
-              <stop offset={1} stopColor="#53118F" /> {/* American Violet */}
-            </radialGradient>
-          </defs>
-        </svg>
-
-        {/* Navigation */}
-        <nav className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+    <div style={{ background: 'var(--color-bg-shell)', minHeight: '100vh' }}>
+      {/* Navigation */}
+      <nav
+        className="fixed top-0 left-0 right-0 z-50"
+        style={{
+          background: 'rgba(1, 39, 49, 0.9)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid var(--color-border)'
+        }}
+      >
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-br from-[#933DC9] to-[#53118F] p-2 rounded-lg shadow-md">
-                <Brain className="w-6 h-6 text-[#FBFAEE]" />
+            <div className="flex items-center gap-3">
+              <div
+                className="p-2 rounded-lg"
+                style={{ background: 'var(--color-accent-muted)' }}
+              >
+                <Sparkles className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
               </div>
-              <span className="text-2xl font-bold text-[#FBFAEE]">
-                Reflog
-              </span>
+              <span className="text-lg font-semibold">Reflog</span>
             </div>
-            {/* Auth Buttons */}
-            <div className="flex items-center space-x-3">
+
+            <div className="flex items-center gap-3">
               <SignInButton mode="modal">
-                <button className="text-[#FBFAEE]/80 hover:text-[#FBFAEE] transition px-4 py-1.5 rounded-md text-sm font-medium hover:bg-[#242424]/50">
-                  Sign In
-                </button>
+                <button className="btn btn-ghost">Sign In</button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <button className="bg-gradient-to-r from-[#933DC9] to-[#53118F] text-[#FBFAEE] px-5 py-1.5 rounded-md hover:brightness-110 transition shadow-md text-sm font-semibold">
-                  Get Started Free
-                </button>
+                <button className="btn btn-primary">Get Started</button>
               </SignUpButton>
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
 
-        {/* Hero Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Tagline Badge --- Changed --- */}
-            <div className="inline-flex items-center space-x-2 bg-[#933DC9]/10 border border-[#933DC9]/30 rounded-full px-4 py-1.5 mb-6 text-sm">
-              <Zap className="w-4 h-4 text-[#C488F8]" /> {/* Lighter Orchid */}
-              <span className="font-medium text-[#C488F8]">AI Mentorship Driven by Your Data</span>
+      {/* Ambient Background Layer */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Deep Abstract Blob - Top Left */}
+        <motion.div
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.5, 0.3],
+            x: [0, 30, 0],
+            y: [0, -30, 0]
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute -top-[20%] -left-[10%] w-[70vw] h-[70vw] rounded-full mix-blend-screen filter blur-[100px]"
+          style={{
+            background: 'radial-gradient(circle, var(--color-abyssal) 0%, transparent 70%)',
+            opacity: 0.4
+          }}
+        />
+
+        {/* Accent Highlight - Center Right */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.4, 0.2],
+            x: [0, -50, 0],
+            y: [0, 50, 0]
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+          className="absolute top-[10%] -right-[10%] w-[60vw] h-[60vw] rounded-full mix-blend-screen filter blur-[120px]"
+          style={{
+            background: 'radial-gradient(circle, var(--color-accent) 0%, transparent 70%)',
+            opacity: 0.3
+          }}
+        />
+
+        {/* Warm Glow - Bottom Left (Subtle) */}
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.1, 0.3, 0.1],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 5
+          }}
+          className="absolute bottom-[-10%] left-[20%] w-[50vw] h-[50vw] rounded-full mix-blend-screen filter blur-[150px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(241, 179, 147, 0.4) 0%, transparent 70%)', // Apricot Spring
+            opacity: 0.2
+          }}
+        />
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative z-10 pt-32 pb-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Badge */}
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-8"
+              style={{
+                background: 'var(--color-accent-bg)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-accent)'
+              }}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              AI Executive Intelligence
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight tracking-tight">
-              <span className="bg-gradient-to-r from-[#C488F8] to-[#933DC9] bg-clip-text text-transparent">
-                Stop Fooling Yourself.
-              </span>
+            {/* Headline */}
+            <h1
+              className="text-4xl md:text-6xl font-bold leading-tight mb-6"
+              style={{ letterSpacing: '-0.02em' }}
+            >
+              Your competitive edge.
               <br />
-              <span className="text-[#FBFAEE]">Start Building a Real Business.</span>
+              <span style={{ color: 'var(--color-accent)' }}>
+                Operated by AI.
+              </span>
             </h1>
 
-            {/* Sub-headline */}
-            <p className="text-lg lg:text-xl text-[#FBFAEE]/80 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Track what actually matters. Get AI feedback that won't let you bullshit. Weekly accountability. Data-driven reality checks.
+            {/* Subheadline */}
+            <p
+              className="text-lg md:text-xl max-w-2xl mx-auto mb-10"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Strategic intelligence, competitor tracking, and decision support.
+              Not a chatbot—an operator that runs alongside you.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* CTAs */}
+            <div className="flex items-center justify-center gap-4">
               <SignUpButton mode="modal">
-                <button className="group w-full sm:w-auto bg-gradient-to-r from-[#933DC9] to-[#53118F] text-[#FBFAEE] px-7 py-3 rounded-lg text-base font-semibold hover:brightness-110 transition-all shadow-lg hover:shadow-[#933DC9]/40 flex items-center justify-center">
-                  Start Your Free Trial
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                <button className="btn btn-primary text-base px-8 py-3">
+                  Start Free
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </SignUpButton>
+              <button
+                className="btn btn-secondary text-base px-6 py-3"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                See how it works
+              </button>
             </div>
-
-            {/* Trust Badges */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[#FBFAEE]/60">
-              <div className="flex items-center">
-                <CheckCircle className="w-3.5 h-3.5 mr-1.5 text-green-500" />
-                14-day free trial
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-3.5 h-3.5 mr-1.5 text-green-500" />
-                No credit card required
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-3.5 h-3.5 mr-1.5 text-green-500" />
-                Connect GitHub securely
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </section>
 
-      {/* Features Section */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="text-center mb-12 lg:mb-16">
-          {/* --- Changed --- */}
-          <h2 className="text-3xl lg:text-4xl font-bold text-[#FBFAEE] mb-3">
-            A Mentor That Understands Your Code
-          </h2>
-          <p className="text-lg text-[#FBFAEE]/70 max-w-2xl mx-auto">
-            Reflog digs into *your* data to provide guidance you won't get anywhere else.
-          </p>
-        </div>
-
-        {/* Features Grid (Uses the updated 'features' array from above) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {features.map((feature, index) => (
+      {/* Preview Section */}
+      <section className="relative z-10 py-12 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="card p-2"
+            style={{
+              boxShadow: '0 20px 60px rgba(1, 39, 49, 0.5)',
+              border: '1px solid var(--color-border)'
+            }}
+          >
             <div
-              key={index}
-              className="bg-[#242424] border border-[#242424]/50 rounded-xl p-6 transition-all duration-300 hover:border-[#933DC9]/50 hover:shadow-lg hover:shadow-[#933DC9]/10 group"
+              className="rounded-lg p-8"
+              style={{ background: 'var(--color-bg-card)' }}
             >
-              {/* Feature Icon */}
-              <div className="bg-gradient-to-br from-[#933DC9]/20 to-[#53118F]/20 w-10 h-10 rounded-lg flex items-center justify-center mb-4 border border-[#933DC9]/30 group-hover:scale-105 transition-transform duration-300">
-                <div className="text-[#C488F8]"> {/* Lighter Orchid Icon */}
-                  {React.cloneElement(feature.icon, { className: "w-5 h-5" })}
+              {/* Mock Dashboard Preview */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ background: 'var(--color-accent-muted)' }}
+                  >
+                    <Sparkles className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Good morning</p>
+                    <p
+                      className="text-xs"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      3 priorities • 2 decisions needed
+                    </p>
+                  </div>
+                </div>
+                <div className="badge badge-accent">
+                  <Zap className="w-3 h-3 mr-1" />
+                  5 actions pending
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-[#FBFAEE] mb-2">{feature.title}</h3>
-              <p className="text-sm text-[#FBFAEE]/70 leading-relaxed">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* How It Works Section - Simplified */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="text-center mb-12 lg:mb-16">
-           {/* --- Changed --- */}
-          <h2 className="text-3xl lg:text-4xl font-bold text-[#FBFAEE] mb-3">
-            Your Journey to Mastery
-          </h2>
-           <p className="text-lg text-[#FBFAEE]/70 max-w-xl mx-auto">
-            Connect, reflect, commit, and ship. Your AI mentor guides you through the process.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-          {[
-            { step: "1", title: "Connect GitHub", description: "Securely link your account for analysis." },
-            { step: "2", title: "Receive Guidance", description: "Understand AI-driven feedback on your patterns." }, // Changed
-            { step: "3", title: "Set Daily Goals", description: "Commit to specific, shippable tasks." },
-            { step: "4", title: "Track & Iterate", description: "Review outcomes, log decisions, repeat." }
-          ].map((item) => (
-             <div key={item.step} className="bg-[#242424]/50 border border-[#242424]/60 rounded-lg p-5">
-               <div className="bg-gradient-to-r from-[#933DC9] to-[#53118F] w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-3 text-[#FBFAEE] font-bold text-lg shadow-md">
-                {item.step}
-              </div>
-              <h3 className="text-base font-semibold text-[#FBFAEE] mb-1">{item.title}</h3>
-              <p className="text-xs text-[#FBFAEE]/70">{item.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-
-      {/* Testimonials Section */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="text-center mb-12 lg:mb-16">
-          {/* --- Changed --- */}
-          <h2 className="text-3xl lg:text-4xl font-bold text-[#FBFAEE] mb-3">
-            Don't Just Take Our Word For It
-          </h2>
-          <p className="text-lg text-[#FBFAEE]/70 max-w-2xl mx-auto">
-            Real feedback from developers building better habits with their AI mentor.
-          </p>
-        </div>
-
-        {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className="bg-[#242424] border border-[#242424]/50 rounded-xl p-6 transition-all hover:border-[#933DC9]/40 flex flex-col"
-            >
-               <blockquote className="text-[#FBFAEE]/80 mb-4 leading-relaxed italic text-sm flex-grow">
-                 "{testimonial.quote.replace('Sage', 'Reflog')}" {/* Replace name in quote */}
-               </blockquote>
-              <div className="mt-auto pt-4 border-t border-[#242424]/40">
-                <p className="text-[#FBFAEE] font-semibold text-sm">{testimonial.author}</p>
-                <p className="text-[#FBFAEE]/60 text-xs">{testimonial.role}</p>
+              {/* Mock Priority Items */}
+              <div className="space-y-3">
+                {[
+                  'Review competitor pricing changes from yesterday',
+                  'Prepare for investor call at 2pm',
+                  'Decision needed: Expand to EU market or focus US'
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 p-4 rounded-lg"
+                    style={{
+                      background: 'var(--color-bg-shell)',
+                      border: '1px solid var(--color-border-subtle)'
+                    }}
+                  >
+                    <span
+                      className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold"
+                      style={{
+                        background: 'var(--color-accent-muted)',
+                        color: 'var(--color-accent)'
+                      }}
+                    >
+                      {i + 1}
+                    </span>
+                    <p className="text-sm">{item}</p>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          </motion.div>
         </div>
-      </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="relative z-10 py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">
+              What Reflog handles
+            </h2>
+            <p style={{ color: 'var(--color-text-muted)' }}>
+              Strategic operations that compound over time
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Brain,
+                title: 'Daily Intelligence',
+                description: 'Morning briefs with priorities, decisions needed, and strategic context. No more wondering what to focus on.'
+              },
+              {
+                icon: TrendingUp,
+                title: 'Competitor Tracking',
+                description: 'Monitor competitor moves, pricing changes, and market shifts. Stay informed without the noise.'
+              },
+              {
+                icon: Target,
+                title: 'Commitment Tracking',
+                description: 'Track what you said you\'d do. Get honest feedback on execution patterns and accountability.'
+              },
+              {
+                icon: Calendar,
+                title: 'Meeting Intelligence',
+                description: 'Pre-meeting briefs and post-meeting action extraction. Never go into a meeting unprepared.'
+              },
+              {
+                icon: MessageSquare,
+                title: 'Strategic Advisor',
+                description: 'On-demand advice that considers your context, history, and patterns. Not generic chatbot responses.'
+              },
+              {
+                icon: Shield,
+                title: 'Decision Support',
+                description: 'Framework-based decision analysis when you face hard choices. Think clearly under pressure.'
+              }
+            ].map((feature, i) => {
+              const Icon = feature.icon
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="card p-6 card-hover"
+                >
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+                    style={{ background: 'var(--color-accent-muted)' }}
+                  >
+                    <Icon className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
+                  </div>
+                  <h3 className="font-semibold mb-2">{feature.title}</h3>
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
+                    {feature.description}
+                  </p>
+                </motion.div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Philosophy Section */}
+      <section
+        className="relative z-10 py-20 px-6"
+        style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+      >
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-6">
+            Built different
+          </h2>
+          <div
+            className="text-lg leading-relaxed space-y-4"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            <p>
+              Most AI tools feel like talking to a search engine.
+              Reflog is designed to be your strategic partner.
+            </p>
+            <p>
+              It doesn't just answer questions—it <em>operates</em>.
+              It tracks your commitments, surfaces what matters,
+              and holds you accountable to what you said you'd do.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="bg-gradient-to-br from-[#933DC9] to-[#53118F] rounded-2xl p-8 sm:p-12 text-center relative overflow-hidden shadow-2xl">
-           {/* Subtle pattern */}
-           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#FBFAEE_1px,transparent_1px)] [background-size:16px_16px]"></div>
-          <div className="relative z-10">
-            {/* --- Changed --- */}
-            <h2 className="text-3xl lg:text-4xl font-bold text-[#FBFAEE] mb-3">
-              Ready to Meet Your Mentor?
-            </h2>
-            <p className="text-base lg:text-lg text-[#FBFAEE]/80 mb-8 max-w-xl mx-auto">
-              Start your free trial. Connect GitHub, get your first analysis, and begin your journey to mastery.
-            </p>
-            <SignUpButton mode="modal">
-              <button className="bg-[#FBFAEE] text-[#53118F] px-8 py-3 rounded-lg text-base font-bold hover:bg-[#FBFAEE]/90 transition shadow-lg transform hover:scale-105 duration-200">
-                Start Free Trial Now
-              </button>
-            </SignUpButton>
-          </div>
+      <section className="relative z-10 py-20 px-6">
+        <div
+          className="max-w-4xl mx-auto card p-12 text-center"
+          style={{
+            background: 'var(--color-bg-card)',
+            border: '1px solid var(--color-border)'
+          }}
+        >
+          <h2 className="text-3xl font-bold mb-4">
+            Ready for Executive Intelligence?
+          </h2>
+          <p
+            className="text-lg mb-8"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            Start free. No credit card required.
+          </p>
+          <SignUpButton mode="modal">
+            <button className="btn btn-primary text-lg px-10 py-4">
+              Get Started
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </SignUpButton>
         </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 border-t border-[#242424]/50">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Footer Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="bg-gradient-to-br from-[#933DC9] to-[#53118F] p-1.5 rounded-md">
-              <Brain className="w-4 h-4 text-[#FBFAEE]" />
-            </div>
-            <span className="text-lg font-semibold text-[#FBFAEE]">Reflog</span>
+      <footer
+        className="relative z-10 py-8 px-6"
+        style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+      >
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+            <span className="text-sm font-medium">Reflog</span>
           </div>
-          {/* Copyright - You already had "AI Mentor" here, which is perfect! */}
-          <div className="text-[#FBFAEE]/60 text-xs text-center sm:text-right">
-             © {new Date().getFullYear()} Reflog AI Mentor. Reflect. Improve. Ship.
-          </div>
+          <p
+            className="text-xs"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            © 2024 Reflog. Executive Intelligence for founders.
+          </p>
         </div>
       </footer>
     </div>
-  );
+  )
 }

@@ -15,11 +15,13 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 class RealityScoreResponse(BaseModel):
     score: int
-    delta: int # Change from yesterday
-    components: Dict[str, int] # Breakdown (e.g., {"shipping": 30, "revenue": 20})
+    delta: int  # Change from yesterday
+    components: Dict[str, int]  # Breakdown (e.g., {"shipping": 30, "revenue": 20})
     insight: str
+
 
 @router.get("/{user_id}", response_model=RealityScoreResponse)
 def get_reality_score(user_id: int, db: Session = Depends(get_db)):
@@ -28,7 +30,7 @@ def get_reality_score(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
 
     # Initialize clients (in production, fetch keys from user/env)
-    github_client = GitHubClient(token=None) 
+    github_client = GitHubClient(token=None)
     stripe_client = StripeClient(api_key=None)
 
     # 1. Calculate Shipping Score (GitHub)
@@ -36,7 +38,7 @@ def get_reality_score(user_id: int, db: Session = Depends(get_db)):
     try:
         gh_activity = github_client.get_recent_activity(user.github_username or "founder")
         if gh_activity["total_commits_24h"] > 0:
-            shipping_score = min(40, gh_activity["total_commits_24h"] * 5) # 5 pts per commit, max 40
+            shipping_score = min(40, gh_activity["total_commits_24h"] * 5)  # 5 pts per commit, max 40
     except Exception as e:
         print(f"GitHub integration error: {e}")
 
@@ -46,7 +48,7 @@ def get_reality_score(user_id: int, db: Session = Depends(get_db)):
         # In real app, check if user has Stripe connected
         mrr = stripe_client.get_mrr()
         if mrr > 0:
-            growth_score = 30 # Baseline for having revenue
+            growth_score = 30  # Baseline for having revenue
     except Exception as e:
         print(f"Stripe integration error: {e}")
 
@@ -57,14 +59,14 @@ def get_reality_score(user_id: int, db: Session = Depends(get_db)):
         models.CheckIn.user_id == user_id,
         models.CheckIn.timestamp >= yesterday
     ).count()
-    
+
     if recent_checkins > 0:
-        mindset_score = 30 # Max 30 points for consistency
+        mindset_score = 30  # Max 30 points for consistency
 
     total_score = min(100, shipping_score + growth_score + mindset_score)
-    
+
     # Mock delta (random for now, or calculate from history)
-    delta = 5 
+    delta = 5
 
     return RealityScoreResponse(
         score=total_score,

@@ -6,9 +6,11 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict
 
 # SQLAlchemy Models for Business Tracking
+
+
 class BusinessMetric(Base):
     __tablename__ = "business_metrics"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     metric_type = Column(String(100))  # mrr, users, runway, etc.
@@ -17,9 +19,10 @@ class BusinessMetric(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
     context = Column(JSON, nullable=True)  # Additional context
 
+
 class WeeklyReview(Base):
     __tablename__ = "weekly_reviews"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     week_start = Column(DateTime)
@@ -31,9 +34,10 @@ class WeeklyReview(Base):
     ai_analysis = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
 class OKR(Base):
     __tablename__ = "okrs"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     quarter = Column(String(10))  # "2025-Q2"
@@ -42,9 +46,10 @@ class OKR(Base):
     progress_updates = Column(JSON)  # Weekly check-ins
     achieved = Column(Boolean, nullable=True)
 
+
 class TimeAllocation(Base):
     __tablename__ = "time_allocation"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     date = Column(DateTime, default=datetime.utcnow)
@@ -53,11 +58,14 @@ class TimeAllocation(Base):
     notes = Column(Text, nullable=True)
 
 # Pydantic Schemas
+
+
 class BusinessMetricCreate(BaseModel):
     metric_type: str
     value: float
     target: Optional[float] = None
     notes: Optional[str] = None
+
 
 class BusinessMetricResponse(BaseModel):
     id: int
@@ -66,9 +74,10 @@ class BusinessMetricResponse(BaseModel):
     target: Optional[float]
     date: datetime
     notes: Optional[str]
-    
+
     class Config:
         from_attributes = True
+
 
 class WeeklyReviewCreate(BaseModel):
     wins: List[str]
@@ -76,6 +85,7 @@ class WeeklyReviewCreate(BaseModel):
     biggest_blocker: str
     what_avoiding: str
     next_week_focus: str
+
 
 class WeeklyReviewResponse(BaseModel):
     id: int
@@ -87,14 +97,16 @@ class WeeklyReviewResponse(BaseModel):
     next_week_focus: str
     ai_analysis: Optional[str]
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
+
 
 class OKRCreate(BaseModel):
     quarter: str  # "2025-Q2"
     objective: str
     key_results: List[Dict]  # [{"kr": "Reach $10K MRR", "target": 10000, "current": 8400}]
+
 
 class OKRResponse(BaseModel):
     id: int
@@ -103,14 +115,16 @@ class OKRResponse(BaseModel):
     key_results: List[Dict]
     progress_updates: Optional[List[Dict]]
     achieved: Optional[bool]
-    
+
     class Config:
         from_attributes = True
+
 
 class TimeAllocationCreate(BaseModel):
     category: str  # 'product', 'sales', 'fundraising', 'ops', 'marketing'
     hours: float
     notes: Optional[str] = None
+
 
 class TimeAllocationResponse(BaseModel):
     id: int
@@ -118,6 +132,6 @@ class TimeAllocationResponse(BaseModel):
     category: str
     hours: float
     notes: Optional[str]
-    
+
     class Config:
         from_attributes = True

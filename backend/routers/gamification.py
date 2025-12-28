@@ -12,6 +12,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 class GamificationStats(BaseModel):
     xp: int
     level: int
@@ -19,10 +20,12 @@ class GamificationStats(BaseModel):
     longest_streak: int
     next_level_xp: int
 
+
 class LeaderboardEntry(BaseModel):
     username: str
     xp: int
     level: int
+
 
 @router.get("/stats/{email}", response_model=GamificationStats)
 def get_user_stats(email: str, db: Session = Depends(get_db)):
@@ -31,16 +34,16 @@ def get_user_stats(email: str, db: Session = Depends(get_db)):
         user = db.query(models.User).filter(models.User.id == int(email)).first()
     else:
         user = db.query(models.User).filter(models.User.email == email).first()
-        
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     # Calculate XP needed for next level
     # Formula: Level = floor(sqrt(XP / 100)) + 1
     # Next Level XP = ((Level) ** 2) * 100
     next_level = user.level + 1
     next_level_xp = (next_level ** 2) * 100
-    
+
     return GamificationStats(
         xp=user.xp,
         level=user.level,
@@ -48,6 +51,7 @@ def get_user_stats(email: str, db: Session = Depends(get_db)):
         longest_streak=user.longest_streak,
         next_level_xp=next_level_xp
     )
+
 
 @router.get("/leaderboard", response_model=List[LeaderboardEntry])
 def get_leaderboard(limit: int = 10, db: Session = Depends(get_db)):
@@ -60,19 +64,20 @@ def get_leaderboard(limit: int = 10, db: Session = Depends(get_db)):
         ) for user in users
     ]
 
+
 def award_xp(user_id: int, amount: int, db: Session):
     """Internal utility to award XP and handle leveling up."""
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         return
-    
+
     user.xp += amount
-    
+
     # Check for level up
     new_level = math.floor(math.sqrt(user.xp / 100)) + 1
     if new_level > user.level:
         user.level = new_level
         # TODO: Send notification for level up
-        
+
     db.commit()
     db.refresh(user)

@@ -22,7 +22,7 @@ def send_morning_reminders():
             models.User.email_notifications == True,
             models.User.email.isnot(None)
         ).all()
-        
+
         sent_count = 0
         for user in users:
             # Skip if user has already checked in today
@@ -31,10 +31,10 @@ def send_morning_reminders():
                 models.CheckIn.user_id == user.id,
                 models.CheckIn.timestamp >= today_start
             ).first()
-            
+
             if today_checkin:
                 continue
-            
+
             # Send morning reminder
             success = EmailService.send_morning_reminder(
                 to_email=user.email,
@@ -43,10 +43,10 @@ def send_morning_reminders():
                 current_streak=user.current_streak or 0,
                 success_rate=user.success_rate
             )
-            
+
             if success:
                 sent_count += 1
-        
+
         return f"Sent {sent_count} morning reminders"
     finally:
         db.close()
@@ -62,7 +62,7 @@ def send_evening_reminders():
     try:
         # Get today's start
         today_start = datetime.combine(datetime.now().date(), datetime.min.time())
-        
+
         # Find check-ins from today that have a commitment but haven't been reviewed (shipped is null)
         unreviewd_checkins = db.query(models.CheckIn).filter(
             models.CheckIn.timestamp >= today_start,
@@ -70,14 +70,14 @@ def send_evening_reminders():
             models.CheckIn.commitment != '',
             models.CheckIn.shipped.is_(None)
         ).all()
-        
+
         sent_count = 0
         for checkin in unreviewd_checkins:
             user = db.query(models.User).filter(models.User.id == checkin.user_id).first()
-            
+
             if not user or not user.email or not user.email_notifications:
                 continue
-            
+
             success = EmailService.send_evening_reminder(
                 to_email=user.email,
                 user_name=user.full_name or 'Founder',
@@ -85,10 +85,10 @@ def send_evening_reminders():
                 accountability_style=user.accountability_style or 'balanced',
                 is_urgent=False
             )
-            
+
             if success:
                 sent_count += 1
-        
+
         return f"Sent {sent_count} evening reminders"
     finally:
         db.close()
@@ -103,21 +103,21 @@ def send_urgent_evening_reminders():
     db = SessionLocal()
     try:
         today_start = datetime.combine(datetime.now().date(), datetime.min.time())
-        
+
         unreviewd_checkins = db.query(models.CheckIn).filter(
             models.CheckIn.timestamp >= today_start,
             models.CheckIn.commitment.isnot(None),
             models.CheckIn.commitment != '',
             models.CheckIn.shipped.is_(None)
         ).all()
-        
+
         sent_count = 0
         for checkin in unreviewd_checkins:
             user = db.query(models.User).filter(models.User.id == checkin.user_id).first()
-            
+
             if not user or not user.email or not user.email_notifications:
                 continue
-            
+
             success = EmailService.send_evening_reminder(
                 to_email=user.email,
                 user_name=user.full_name or 'Founder',
@@ -125,10 +125,10 @@ def send_urgent_evening_reminders():
                 accountability_style=user.accountability_style or 'balanced',
                 is_urgent=True  # More aggressive messaging
             )
-            
+
             if success:
                 sent_count += 1
-        
+
         return f"Sent {sent_count} urgent evening reminders"
     finally:
         db.close()
@@ -143,33 +143,33 @@ def send_inactive_nudges():
     db = SessionLocal()
     try:
         three_days_ago = datetime.now() - timedelta(days=3)
-        
+
         # Find users with email notifications who haven't checked in recently
         users = db.query(models.User).filter(
             models.User.email_notifications == True,
             models.User.email.isnot(None)
         ).all()
-        
+
         sent_count = 0
         for user in users:
             # Get their last check-in
             last_checkin = db.query(models.CheckIn).filter(
                 models.CheckIn.user_id == user.id
             ).order_by(models.CheckIn.timestamp.desc()).first()
-            
+
             if last_checkin and last_checkin.timestamp < three_days_ago:
                 days_inactive = (datetime.now() - last_checkin.timestamp).days
-                
+
                 success = EmailService.send_inactive_nudge(
                     to_email=user.email,
                     user_name=user.full_name or 'Founder',
                     days_inactive=days_inactive,
                     accountability_style=user.accountability_style or 'balanced'
                 )
-                
+
                 if success:
                     sent_count += 1
-        
+
         return f"Sent {sent_count} inactive nudges"
     finally:
         db.close()
@@ -187,12 +187,12 @@ def send_weekly_summaries():
         week_ago = today - timedelta(days=7)
         week_start = datetime.combine(week_ago, datetime.min.time())
         week_end = datetime.combine(today, datetime.min.time())
-        
+
         users = db.query(models.User).filter(
             models.User.email_notifications == True,
             models.User.email.isnot(None)
         ).all()
-        
+
         sent_count = 0
         for user in users:
             # Get last week's check-ins
@@ -202,14 +202,14 @@ def send_weekly_summaries():
                 models.CheckIn.timestamp < week_end,
                 models.CheckIn.shipped.isnot(None)
             ).all()
-            
+
             if not checkins:
                 continue
-            
+
             shipped = sum(1 for c in checkins if c.shipped)
             total = len(checkins)
             success_rate = (shipped / total * 100) if total > 0 else 0
-            
+
             EmailService.send_weekly_summary(
                 to_email=user.email,
                 user_name=user.full_name or 'Founder',
@@ -221,7 +221,7 @@ def send_weekly_summaries():
                 accountability_style=user.accountability_style or 'balanced'
             )
             sent_count += 1
-        
+
         return f"Sent {sent_count} weekly summaries"
     finally:
         db.close()
@@ -236,13 +236,13 @@ def check_streak_milestones():
     db = SessionLocal()
     try:
         milestones = [7, 14, 21, 30, 60, 90, 100]
-        
+
         users = db.query(models.User).filter(
             models.User.email_notifications == True,
             models.User.email.isnot(None),
             models.User.current_streak.in_(milestones)
         ).all()
-        
+
         sent_count = 0
         for user in users:
             EmailService.send_streak_notification(
@@ -252,7 +252,7 @@ def check_streak_milestones():
                 is_broken=False
             )
             sent_count += 1
-        
+
         return f"Sent {sent_count} streak milestone notifications"
     finally:
         db.close()

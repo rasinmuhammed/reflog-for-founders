@@ -14,11 +14,11 @@ class StripeClient:
     Stripe API client placeholder.
     Returns None for all methods until properly configured.
     """
-    
+
     def __init__(self, api_key: str = None):
         self.api_key = api_key or STRIPE_API_KEY
         self.is_configured = bool(self.api_key)
-    
+
     def get_mrr(self) -> Optional[int]:
         """
         Get Monthly Recurring Revenue.
@@ -31,7 +31,7 @@ class StripeClient:
         # stripe.api_key = self.api_key
         # ... calculate MRR from subscriptions
         return None
-    
+
     def get_recent_charges(self, limit: int = 5) -> Optional[List[Dict[str, Any]]]:
         """
         Get recent charges.
@@ -41,7 +41,7 @@ class StripeClient:
             return None
         # TODO: Implement actual Stripe API call
         return None
-    
+
     def get_customer_count(self) -> Optional[int]:
         """
         Get total customer count.

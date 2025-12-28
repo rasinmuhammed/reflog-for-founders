@@ -35,10 +35,10 @@ def encrypt_value(plaintext: str) -> str:
     """
     if not cipher:
         raise ValueError("Encryption not configured - set ENCRYPTION_KEY")
-    
+
     if not plaintext:
         return ""
-    
+
     encrypted = cipher.encrypt(plaintext.encode())
     return encrypted.decode()
 
@@ -50,10 +50,10 @@ def decrypt_value(encrypted_text: str) -> str:
     """
     if not cipher:
         raise ValueError("Encryption not configured - set ENCRYPTION_KEY")
-    
+
     if not encrypted_text:
         return ""
-    
+
     decrypted = cipher.decrypt(encrypted_text.encode())
     return decrypted.decode()
 

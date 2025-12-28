@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import {
-    Rocket, Check, X, Loader2, Zap,
-    ArrowRight, Sparkles, Clock
+    Rocket, Check, X, Loader2, Zap, Sparkles
 } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -36,7 +35,7 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
 
     const checkTodayStatus = async () => {
         try {
-            const res = await axios.get(`${API_URL}/quick-checkin/${encodeURIComponent(userIdentifier)}/today`)
+            const res = await axios.get(`${API_URL}/cos/quick-checkin/${encodeURIComponent(userIdentifier)}/today`)
             if (res.data.commitment) {
                 setTodayCommitment(res.data)
                 setMode(res.data.shipped === null ? 'review' : 'check')
@@ -52,7 +51,7 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
         if (!commitment.trim() || commitment.split(' ').length > 15) return
         setLoading(true)
         try {
-            const res = await axios.post(`${API_URL}/quick-checkin/${encodeURIComponent(userIdentifier)}`, {
+            const res = await axios.post(`${API_URL}/cos/quick-checkin/${encodeURIComponent(userIdentifier)}`, {
                 commitment: commitment.trim()
             })
             setAiResponse(res.data.ai_response || null)
@@ -75,7 +74,7 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
         if (!todayCommitment) return
         setLoading(true)
         try {
-            const res = await axios.post(`${API_URL}/quick-checkin/${encodeURIComponent(userIdentifier)}/review`, {
+            const res = await axios.post(`${API_URL}/cos/quick-checkin/${encodeURIComponent(userIdentifier)}/review`, {
                 shipped,
                 excuse: shipped ? null : 'Not today'
             })
@@ -99,25 +98,32 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+            style={{ background: 'rgba(1, 39, 49, 0.9)', backdropFilter: 'blur(5px)' }}
             onClick={(e) => e.target === e.currentTarget && onClose?.()}
         >
             <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="w-full max-w-lg bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] border border-[#252525] rounded-3xl overflow-hidden shadow-2xl"
+                className="w-full max-w-lg card overflow-hidden"
             >
                 {/* Header */}
-                <div className="p-6 border-b border-[#252525] bg-gradient-to-r from-[#933DC9]/10 to-transparent">
+                <div
+                    className="p-5"
+                    style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
+                >
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-[#933DC9] to-[#53118F] rounded-xl">
-                            <Zap className="w-6 h-6 text-white" />
+                        <div
+                            className="p-2.5 rounded-lg"
+                            style={{ background: 'var(--color-accent-muted)' }}
+                        >
+                            <Zap className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white">Reality Check</h2>
-                            <p className="text-sm text-[#FBFAEE]/50">
-                                {mode === 'commit' ? 'One thing. No excuses.' : 'Did you ship it?'}
+                            <h2 className="text-lg font-semibold">Daily Commitment</h2>
+                            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                                {mode === 'commit' ? 'One thing. No excuses.' : 'Did you execute?'}
                             </p>
                         </div>
                     </div>
@@ -135,22 +141,25 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
                                 className="space-y-5"
                             >
                                 <div>
-                                    <label className="block text-sm font-medium text-[#FBFAEE]/80 mb-3">
-                                        What's the <span className="text-[#C488F8]">ONE thing</span> you'll ship today?
+                                    <label className="block text-sm font-medium mb-3">
+                                        What's the <span style={{ color: 'var(--color-accent)' }}>ONE thing</span> you'll execute today?
                                     </label>
                                     <input
                                         type="text"
                                         value={commitment}
                                         onChange={(e) => setCommitment(e.target.value)}
                                         placeholder="e.g., Launch landing page"
-                                        className="w-full px-5 py-4 bg-[#0a0a0a] border border-[#333] rounded-2xl text-white text-lg placeholder-[#555] focus:ring-2 focus:ring-[#933DC9] focus:border-[#933DC9] transition"
+                                        className="input py-4 text-base"
                                         maxLength={100}
                                         autoFocus
                                         onKeyDown={(e) => e.key === 'Enter' && handleCommit()}
                                     />
-                                    <div className="flex justify-between mt-2 text-xs text-[#FBFAEE]/40">
+                                    <div
+                                        className="flex justify-between mt-2 text-xs"
+                                        style={{ color: 'var(--color-text-muted)' }}
+                                    >
                                         <span>{wordCount}/10 words recommended</span>
-                                        <span className={wordCount > 10 ? 'text-yellow-400' : ''}>
+                                        <span style={{ color: wordCount > 10 ? 'var(--color-warning)' : 'inherit' }}>
                                             Keep it focused
                                         </span>
                                     </div>
@@ -159,7 +168,7 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
                                 <button
                                     onClick={handleCommit}
                                     disabled={!commitment.trim() || loading}
-                                    className="w-full py-4 bg-gradient-to-r from-[#933DC9] to-[#53118F] text-white rounded-2xl font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 hover:brightness-110 transition shadow-lg shadow-purple-900/30"
+                                    className="btn btn-primary w-full py-4 text-base"
                                 >
                                     {loading ? (
                                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -182,32 +191,54 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
                                 exit={{ opacity: 0, y: -20 }}
                                 className="space-y-6"
                             >
-                                <div className="p-5 bg-[#0a0a0a] border border-[#333] rounded-2xl">
-                                    <p className="text-xs text-[#FBFAEE]/50 uppercase tracking-wide mb-2">
+                                <div
+                                    className="p-5 rounded-lg"
+                                    style={{
+                                        background: 'var(--color-bg-shell)',
+                                        border: '1px solid var(--color-border)'
+                                    }}
+                                >
+                                    <p
+                                        className="text-xs uppercase tracking-wide mb-2"
+                                        style={{ color: 'var(--color-text-muted)' }}
+                                    >
                                         Today's commitment
                                     </p>
-                                    <p className="text-xl text-white font-medium">
+                                    <p className="text-lg font-medium">
                                         "{todayCommitment.commitment}"
                                     </p>
                                 </div>
 
-                                <p className="text-center text-[#FBFAEE]/80 font-medium">
-                                    Did you ship it?
+                                <p
+                                    className="text-center font-medium"
+                                    style={{ color: 'var(--color-text-secondary)' }}
+                                >
+                                    Did you execute?
                                 </p>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
                                         onClick={() => handleReview(true)}
                                         disabled={loading}
-                                        className="py-4 bg-green-600/20 border border-green-500/40 text-green-400 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-green-600/30 transition"
+                                        className="btn"
+                                        style={{
+                                            background: 'var(--color-success-bg)',
+                                            border: '1px solid var(--color-success)',
+                                            color: 'var(--color-success)'
+                                        }}
                                     >
                                         <Check className="w-5 h-5" />
-                                        Yes, shipped!
+                                        Yes, done
                                     </button>
                                     <button
                                         onClick={() => handleReview(false)}
                                         disabled={loading}
-                                        className="py-4 bg-red-600/20 border border-red-500/40 text-red-400 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:bg-red-600/30 transition"
+                                        className="btn"
+                                        style={{
+                                            background: 'var(--color-error-bg)',
+                                            border: '1px solid var(--color-error)',
+                                            color: 'var(--color-error)'
+                                        }}
                                     >
                                         <X className="w-5 h-5" />
                                         Not today
@@ -224,21 +255,31 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
                                 animate={{ opacity: 1, scale: 1 }}
                                 className="text-center py-8"
                             >
-                                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${todayCommitment.shipped
-                                    ? 'bg-green-500/20 border-2 border-green-500'
-                                    : 'bg-red-500/20 border-2 border-red-500'
-                                    }`}>
+                                <div
+                                    className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4"
+                                    style={{
+                                        background: todayCommitment.shipped
+                                            ? 'var(--color-success-bg)'
+                                            : 'var(--color-error-bg)',
+                                        border: `1px solid ${todayCommitment.shipped
+                                            ? 'var(--color-success)'
+                                            : 'var(--color-error)'}`
+                                    }}
+                                >
                                     {todayCommitment.shipped ? (
-                                        <Check className="w-8 h-8 text-green-400" />
+                                        <Check className="w-7 h-7" style={{ color: 'var(--color-success)' }} />
                                     ) : (
-                                        <X className="w-8 h-8 text-red-400" />
+                                        <X className="w-7 h-7" style={{ color: 'var(--color-error)' }} />
                                     )}
                                 </div>
-                                <p className="text-lg font-semibold text-white mb-2">
-                                    {todayCommitment.shipped ? 'Great work!' : 'Tomorrow is another day.'}
+                                <p className="text-base font-medium mb-2">
+                                    {todayCommitment.shipped ? 'Executed.' : 'Tomorrow.'}
                                 </p>
                                 {aiResponse && (
-                                    <p className="text-sm text-[#FBFAEE]/70 max-w-sm mx-auto">
+                                    <p
+                                        className="text-sm max-w-sm mx-auto"
+                                        style={{ color: 'var(--color-text-muted)' }}
+                                    >
                                         {aiResponse}
                                     </p>
                                 )}
@@ -248,12 +289,18 @@ export default function QuickCheckin({ userIdentifier, onComplete, onClose }: Qu
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-[#252525] flex items-center justify-between text-xs text-[#FBFAEE]/40">
+                <div
+                    className="px-6 py-4 flex items-center justify-between text-xs"
+                    style={{
+                        borderTop: '1px solid var(--color-border-subtle)',
+                        color: 'var(--color-text-muted)'
+                    }}
+                >
                     <div className="flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-[#C488F8]" />
-                        <span>Powered by Reflog AI</span>
+                        <Sparkles className="w-3 h-3" />
+                        <span>Reflog</span>
                     </div>
-                    <button onClick={onClose} className="hover:text-white transition">
+                    <button onClick={onClose} className="hover:opacity-80 transition">
                         Close
                     </button>
                 </div>

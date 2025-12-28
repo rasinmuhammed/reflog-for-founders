@@ -1,6 +1,7 @@
 import random
 from datetime import datetime, timedelta
 
+
 class GitHubClient:
     def __init__(self, token: str = None):
         self.token = token

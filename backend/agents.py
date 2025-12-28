@@ -13,24 +13,26 @@ GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 print(f"✓ Using Groq model: {GROQ_MODEL}")
 
+
 def create_groq_llm(api_key: str):
     """Create a Groq LLM instance with the provided API key"""
     if not api_key:
         raise ValueError("Groq API key is required")
-    
+
     # Set the API key in environment for this instance
     os.environ["GROQ_API_KEY"] = api_key
-    
+
     return LLM(
         model=f"groq/{GROQ_MODEL}",
         temperature=0.7
     )
 
+
 def get_agents(groq_api_key: str):
     """Return all available agents with user's API key"""
-    
+
     groq_llm = create_groq_llm(groq_api_key)
-    
+
     # Agent 1: The Analyst
     analyst = Agent(
         role="Data Analyst",
@@ -74,9 +76,9 @@ def get_agents(groq_api_key: str):
     challenger = Agent(
         role="The Challenger",
         goal="Question assumptions and expose blind spots that founders avoid seeing",
-        backstory="""You're the founder's reality check - the voice that asks what everyone 
-        else avoids. When advisors are being supportive, you're asking 'But is this really 
-        what the market wants?' or 'Your metrics contradict your narrative - which is true?'. 
+        backstory="""You're the founder's reality check - the voice that asks what everyone
+        else avoids. When advisors are being supportive, you're asking 'But is this really
+        what the market wants?' or 'Your metrics contradict your narrative - which is true?'.
         You're not harsh, you're essential. You prevent the self-deception that kills startups.""",
         verbose=True,
         allow_delegation=False,

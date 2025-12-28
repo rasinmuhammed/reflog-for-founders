@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Bell, X, AlertTriangle, Clock } from 'lucide-react'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 interface ReminderData {
   needs_reminder: boolean
@@ -21,9 +21,9 @@ interface NotificationBannerProps {
   onReviewClick: () => void
 }
 
-export default function NotificationBanner({ 
-  userIdentifier, 
-  onReviewClick 
+export default function NotificationBanner({
+  userIdentifier,
+  onReviewClick
 }: NotificationBannerProps) {
   const [reminder, setReminder] = useState<ReminderData | null>(null)
   const [dismissed, setDismissed] = useState(false)
@@ -31,7 +31,7 @@ export default function NotificationBanner({
 
   useEffect(() => {
     checkReminder()
-    
+
     // Check every 5 minutes
     const interval = setInterval(checkReminder, 5 * 60 * 1000)
     return () => clearInterval(interval)
@@ -42,15 +42,15 @@ export default function NotificationBanner({
       const response = await axios.get(
         `${API_URL}/commitments/${userIdentifier}/reminder-needed`
       )
-      
+
       if (response.data.needs_reminder && !dismissed) {
         setReminder(response.data)
-        
+
         // Request browser notification permission
         if (Notification.permission === 'default') {
           Notification.requestPermission()
         }
-        
+
         // Show browser notification if permitted
         if (Notification.permission === 'granted') {
           new Notification('Sage Reminder', {
@@ -64,7 +64,7 @@ export default function NotificationBanner({
       } else {
         setReminder(null)
       }
-      
+
       setChecking(false)
     } catch (error) {
       console.error('Failed to check reminder:', error)
@@ -75,7 +75,7 @@ export default function NotificationBanner({
   const handleDismiss = () => {
     setDismissed(true)
     setReminder(null)
-    
+
     // Re-enable after 1 hour
     setTimeout(() => {
       setDismissed(false)
@@ -90,16 +90,13 @@ export default function NotificationBanner({
   const isUrgent = reminder.type === 'urgent'
 
   return (
-    <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4 animate-in slide-in-from-top duration-500 ${
-      isUrgent ? 'animate-bounce' : ''
-    }`}>
-      <div className={`bg-gradient-to-r ${
-        isUrgent 
-          ? 'from-red-600 to-orange-600' 
-          : 'from-yellow-600 to-orange-600'
-      } rounded-2xl shadow-2xl border-2 ${
-        isUrgent ? 'border-red-400' : 'border-yellow-400'
+    <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4 animate-in slide-in-from-top duration-500 ${isUrgent ? 'animate-bounce' : ''
       }`}>
+      <div className={`bg-gradient-to-r ${isUrgent
+          ? 'from-red-600 to-orange-600'
+          : 'from-yellow-600 to-orange-600'
+        } rounded-2xl shadow-2xl border-2 ${isUrgent ? 'border-red-400' : 'border-yellow-400'
+        }`}>
         <div className="p-4">
           <div className="flex items-start space-x-4">
             {/* Icon */}
@@ -121,7 +118,7 @@ export default function NotificationBanner({
                   Your commitment: "{reminder.commitment}"
                 </p>
               )}
-              
+
               {/* Action Buttons */}
               <div className="flex items-center space-x-3">
                 <button

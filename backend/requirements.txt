@@ -12,6 +12,8 @@ alembic==1.13.1
 crewai==0.28.8
 crewai-tools==0.0.15
 litellm==1.28.0
+groq>=0.4.0
+openai>=1.0.0
 
 # Security & Encryption
 cryptography==42.0.2
@@ -20,6 +22,15 @@ python-multipart==0.0.9
 # HTTP & APIs
 httpx==0.26.0
 PyGithub==2.1.1
+
+# Google OAuth & APIs
+google-auth>=2.0.0
+google-auth-oauthlib>=1.0.0
+google-api-python-client>=2.0.0
+
+# Rate Limiting
+slowapi>=0.1.0
+limits>=3.0.0
 
 # Email
 resend==0.8.0

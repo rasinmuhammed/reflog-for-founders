@@ -1,99 +1,102 @@
 import { SignUp } from '@clerk/nextjs'
-import { Brain, CheckCircle } from 'lucide-react'
+import { Sparkles, Check } from 'lucide-react'
 import Link from 'next/link'
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'var(--color-bg-shell)' }}
+    >
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left Side - Benefits */}
         <div className="hidden lg:block">
-          <Link href="/" className="flex items-center space-x-3 mb-8">
-            <div className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-3 rounded-2xl shadow-lg">
-              <Brain className="w-8 h-8 text-white" />
+          <Link href="/" className="flex items-center gap-3 mb-8">
+            <div
+              className="p-2.5 rounded-lg"
+              style={{
+                background: 'var(--color-accent-muted)',
+                border: '1px solid var(--color-border)'
+              }}
+            >
+              <Sparkles className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
             </div>
-            <span className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Sage
-            </span>
+            <span className="text-xl font-semibold">Reflog</span>
           </Link>
 
-          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Stop Making Excuses.
+          <h1 className="text-3xl lg:text-4xl font-bold mb-6">
+            Your Executive Intelligence.
             <br />
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Start Shipping.
+            <span style={{ color: 'var(--color-accent)' }}>
+              Operates alongside you.
             </span>
           </h1>
 
-          <p className="text-xl text-gray-400 mb-8">
-            Join developers who are finally shipping their projects instead of collecting tutorials.
+          <p
+            className="text-lg mb-8"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Strategic intelligence, competitor tracking, and decision support for founders who execute.
           </p>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {[
-              'Multi-agent AI that debates to give you balanced advice',
-              'GitHub integration that spots your procrastination patterns',
-              'Daily accountability that actually works',
-              'Brutally honest feedback - no sugar-coating'
+              'Daily briefs with AI-powered priorities',
+              'Competitor intelligence and market tracking',
+              'Strategic decision support and honest feedback',
+              'Commitment tracking that holds you accountable'
             ].map((benefit, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-300">{benefit}</span>
+              <div key={index} className="flex items-start gap-3">
+                <Check
+                  className="w-5 h-5 flex-shrink-0 mt-0.5"
+                  style={{ color: 'var(--color-accent)' }}
+                />
+                <span style={{ color: 'var(--color-text-secondary)' }}>{benefit}</span>
               </div>
             ))}
-          </div>
-
-          <div className="mt-8 p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl">
-            <p className="text-gray-300 italic">
-              "Finally, an AI that doesn't just validate my excuses. Sage called out my tutorial hell and I actually shipped my project."
-            </p>
-            <p className="text-sm text-gray-500 mt-2">— Alex Chen, Full-stack Developer</p>
           </div>
         </div>
 
         {/* Right Side - Sign Up Form */}
         <div className="w-full">
           {/* Mobile Logo */}
-          <Link href="/" className="flex lg:hidden items-center justify-center space-x-3 mb-8">
-            <div className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-3 rounded-2xl shadow-lg">
-              <Brain className="w-8 h-8 text-white" />
+          <Link href="/" className="flex lg:hidden items-center justify-center gap-3 mb-8">
+            <div
+              className="p-2.5 rounded-lg"
+              style={{
+                background: 'var(--color-accent-muted)',
+                border: '1px solid var(--color-border)'
+              }}
+            >
+              <Sparkles className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
             </div>
-            <span className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Sage
-            </span>
+            <span className="text-xl font-semibold">Reflog</span>
           </Link>
 
-          {/* Welcome Text */}
           <div className="text-center lg:text-left mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Create Your Account</h2>
-            <p className="text-gray-400">Start your 14-day free trial. No credit card required.</p>
+            <h2 className="text-2xl font-bold mb-2">Create your account</h2>
+            <p style={{ color: 'var(--color-text-muted)' }}>
+              Start free. No credit card required.
+            </p>
           </div>
 
-          {/* Clerk Sign Up Component */}
           <div className="flex justify-center lg:justify-start">
             <SignUp
               appearance={{
                 elements: {
                   rootBox: "w-full",
-                  card: "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-700 shadow-2xl",
-                  headerTitle: "text-white",
-                  headerSubtitle: "text-gray-400",
-                  socialButtonsBlockButton: "bg-gray-800 border-gray-700 text-white hover:bg-gray-700",
-                  socialButtonsBlockButtonText: "text-white",
-                  formButtonPrimary: "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white",
-                  formFieldInput: "bg-gray-800 border-gray-700 text-white placeholder-gray-500",
-                  formFieldLabel: "text-gray-300",
-                  footerActionLink: "text-blue-400 hover:text-blue-300",
-                  identityPreviewText: "text-white",
-                  identityPreviewEditButton: "text-blue-400",
-                  formFieldSuccessText: "text-green-400"
+                  card: "bg-[#023542] border border-[rgba(70,155,167,0.2)] shadow-xl rounded-xl",
+                  headerTitle: "text-[#F1F3F9]",
+                  headerSubtitle: "text-[rgba(241,243,249,0.5)]",
+                  socialButtonsBlockButton: "bg-[#012731] border-[rgba(70,155,167,0.2)] text-[#F1F3F9] hover:bg-[#034654]",
+                  socialButtonsBlockButtonText: "text-[#F1F3F9]",
+                  formButtonPrimary: "bg-[#469BA7] text-[#012731] hover:bg-[#3d8a95]",
+                  formFieldInput: "bg-[#012731] border-[rgba(70,155,167,0.2)] text-[#F1F3F9] placeholder-[rgba(241,243,249,0.3)]",
+                  formFieldLabel: "text-[rgba(241,243,249,0.8)]",
+                  footerActionLink: "text-[#469BA7] hover:text-[#5aa8b3]",
+                  identityPreviewText: "text-[#F1F3F9]",
+                  identityPreviewEditButton: "text-[#469BA7]",
+                  formFieldSuccessText: "text-[#469BA7]"
                 }
               }}
               routing="path"
@@ -102,32 +105,20 @@ export default function SignUpPage() {
             />
           </div>
 
-          {/* Footer Links */}
           <div className="mt-8 text-center lg:text-left">
-            <p className="text-gray-500 text-sm">
+            <p
+              className="text-sm"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Already have an account?{' '}
-              <Link href="/sign-in" className="text-blue-400 hover:text-blue-300 font-medium">
+              <Link
+                href="/sign-in"
+                className="font-medium"
+                style={{ color: 'var(--color-accent)' }}
+              >
                 Sign in
               </Link>
             </p>
-          </div>
-
-          {/* Trust Indicators */}
-          <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-sm text-gray-600">
-            <span className="flex items-center">
-              <CheckCircle className="w-4 h-4 mr-1 text-green-400" />
-              Free 14-day trial
-            </span>
-            <span>•</span>
-            <span className="flex items-center">
-              <CheckCircle className="w-4 h-4 mr-1 text-green-400" />
-              No credit card required
-            </span>
-            <span>•</span>
-            <span className="flex items-center">
-              <CheckCircle className="w-4 h-4 mr-1 text-green-400" />
-              Cancel anytime
-            </span>
           </div>
         </div>
       </div>
