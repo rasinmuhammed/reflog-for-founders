@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reflog - AI Chief of Staff for Founders</title>
+    <title>Reflog - Executive Intelligence for Founders</title>
     <meta name="description"
-        content="Stop managing. Start executing. Reflog is your AI Chief of Staff - daily briefs, meeting intelligence, action tracking.">
+        content="Your AI-powered executive intelligence platform. Daily briefs, meeting prep, action tracking, and brutally honest strategic advice for startup founders.">
 
     <!-- Favicon -->
     <link rel="icon"
@@ -24,36 +24,51 @@
            ======================================== */
 
         :root {
-            /* Core Background Colors */
-            --qa-bg-shell: #0F172A;
-            --qa-bg-elevated: #1E293B;
-            --qa-bg-surface: #F8FAFC;
-            --qa-bg-hover: #334155;
+            /* New Color Palette - Teal & Apricot */
+            /* Primary Backgrounds */
+            --qa-bg-shell: #012731;
+            /* Daintree - Darkest */
+            --qa-bg-elevated: #005765;
+            /* Abyssal Waters - Dark teal */
+            --qa-bg-surface: #F1F3F9;
+            /* Boysenberry Shadow - Light */
+            --qa-bg-hover: #469BA7;
+            /* Sea Sparkle - Teal hover */
 
             /* Text Colors */
-            --qa-text-primary: #F1F5F9;
-            --qa-text-secondary: #CBD5E1;
-            --qa-text-muted: #64748B;
-            --qa-text-dark: #0F172A;
+            --qa-text-primary: #F1F3F9;
+            /* Boysenberry Shadow */
+            --qa-text-secondary: #DBD0A8;
+            /* Capital Grains */
+            --qa-text-muted: #469BA7;
+            /* Sea Sparkle */
+            --qa-text-dark: #012731;
+            /* Daintree */
 
             /* Borders */
-            --qa-border: #334155;
-            --qa-border-subtle: #1E293B;
+            --qa-border: #005765;
+            /* Abyssal Waters */
+            --qa-border-subtle: rgba(70, 155, 167, 0.2);
+            /* Sea Sparkle subtle */
 
-            /* Accent Colors - Used Sparingly */
-            --qa-accent-primary: #3B82F6;
-            --qa-accent-primary-bg: rgba(59, 130, 246, 0.1);
-            --qa-accent-primary-border: rgba(59, 130, 246, 0.2);
+            /* Accent Colors */
+            --qa-accent-primary: #F1B393;
+            /* Apricot Spring - Primary accent */
+            --qa-accent-primary-bg: rgba(241, 179, 147, 0.15);
+            --qa-accent-primary-border: rgba(241, 179, 147, 0.3);
 
-            --qa-accent-success: #065F46;
-            --qa-accent-success-light: #10B981;
-            --qa-accent-success-bg: rgba(6, 95, 70, 0.15);
+            --qa-accent-success: #469BA7;
+            /* Sea Sparkle */
+            --qa-accent-success-light: #DBD0A8;
+            /* Capital Grains */
+            --qa-accent-success-bg: rgba(70, 155, 167, 0.15);
 
-            --qa-accent-warning: #92400E;
-            --qa-accent-warning-light: #F59E0B;
+            --qa-accent-warning: #F1B393;
+            /* Apricot Spring */
+            --qa-accent-warning-light: #F1B393;
 
-            --qa-accent-error: #7F1D1D;
-            --qa-accent-error-light: #EF4444;
+            --qa-accent-error: #EF4444;
+            --qa-accent-error-light: #F87171;
         }
 
         * {
@@ -121,7 +136,7 @@
         }
 
         .cta-header:hover {
-            background: rgba(59, 130, 246, 0.15);
+            background: rgba(241, 179, 147, 0.25);
         }
 
         /* ========================================
@@ -217,7 +232,7 @@
         }
 
         .submit-btn:hover {
-            background: rgba(59, 130, 246, 0.15);
+            background: rgba(241, 179, 147, 0.25);
         }
 
         .form-note {
@@ -888,8 +903,8 @@
         }
 
         function formSubmittedSuccessfully() {
-            let activeFormId = document.getElementById('waitlistForm').querySelector('.submit-btn').style.opacity === '0.7' 
-                ? 'waitlistForm' 
+            let activeFormId = document.getElementById('waitlistForm').querySelector('.submit-btn').style.opacity === '0.7'
+                ? 'waitlistForm'
                 : 'waitlistFormBottom';
             let activeSuccessId = 'successMessage';
 
