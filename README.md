@@ -1,76 +1,185 @@
-# reflog, for founders
-(Building -- in progress )
-### Your AI Advisory Board. Brutally Honest. Always Available.
+# Reflog — Executive Intelligence for Founders
 
-Stop building in circles. Find your true north.
+> **Your AI-powered strategic advisor. Brutally honest. Always available.**
 
-[](https://github.com/rasinmuhammed/reflog)
+Stop building in circles. Get clarity on what actually matters.
 
------
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/rasinmuhammed/reflog-for-founders)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688)](https://fastapi.tiangolo.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6)](https://www.typescriptlang.org/)
 
-We're drowning in founder advice that validates us even when we're clearly stuck. I saw the pattern everywhere: "In this era, founders are being told 'You're doing great' by AI while their runway burns and customers don't convert." That hit different. We ask for strategic advice, hoping for challenge, but often get cheerleading that keeps us spinning our wheels.
+---
 
-## 🧭 Why "reflog"?
+## 🎯 What is Reflog?
 
-In Git, `git reflog` is a safety net. It's the "reference log" that tracks every move you make, every commit, every reset, every branch switch. It's not the clean, curated history of `git log`; it's the **brutally honest, complete history** of what *actually* happened.
+**Reflog** is an AI-powered executive intelligence platform designed specifically for startup founders. Like `git reflog` tracks your complete development history, Reflog tracks your business decisions, patterns, and execution—giving you brutally honest feedback to break out of founder loops.
 
-Founders need a `reflog` for their business.
+### Why Founders Need This
 
-We all have a "pitch deck" history (our `git log`)—the clean story we tell investors. But **reflog** is your business's `reflog`:
+- **Stop the echo chamber:** Get strategic advice that challenges, not validates
+- **Pattern recognition:** Identify when you're stuck in circular thinking
+- **Execution accountability:** Track what you're actually doing vs. what you planned
+- **Data-driven clarity:** Connect real metrics to AI-powered insights
 
-  * **It tracks your decisions:** Every "commit" (weekly review), every "branch" (new strategy), and every "reset" (pivot).
-  * **It reveals patterns:** It shows you when you've been "stuck" in a detached HEAD state, chasing the same idea in circles.
-  * **It's your objective mirror:** The reflog doesn't judge. It just records. It's the ultimate tool for accountability, allowing you to look back at the *real* history to understand why you are where you are.
+---
 
-**reflog** is your AI advisory board that helps you read—and learn from—your own business's reference log.
+## ✨ Features
 
-## 🏗️ How reflog is Built
+### 🤖 AI-Powered Intelligence
+- **Multi-LLM Support** — Choose Groq (fast, free), OpenAI (premium), or Ollama (self-hosted)
+- **Multi-Agent Deliberation** — Business Strategist, Market Realist, Execution Enforcer agents
+- **Strategic Chat** — Pressure-test decisions with AI advisors
 
-### Multi-Agent AI Advisory System (CrewAI)
+### 📊 Founder Dashboard
+- **Morning Brief** — AI-generated daily priorities and decisions needed
+- **Quick Check-ins** — Track energy, blockers, and needle-moving tasks
+- **Weekly Reviews** — Structured reflection with AI insights
+- **Action Tracker** — Never lose track of commitments
 
-  * **The Business Strategist:** Analyzes decisions through the lens of revenue, growth, and business model fundamentals. Hates "founder theater."
-  * **The Market Realist:** Grounds your optimism in competitive dynamics and market reality. Spots delusion patterns before they become fatal.
-  * **The Execution Enforcer:** Ensures you're *actually* doing the high-impact work, not just planning it. Allergic to analysis paralysis.
+### 🔗 Real Integrations
+- **Google Calendar** — See today's meetings with AI context
+- **Gmail** — Track threads going cold, inbox insights
+- **GitHub** — (Coming soon) Code activity patterns
 
-### Technology Stack
+### 📈 Business Intelligence
+- **Metrics Tracking** — MRR, users, runway, custom KPIs
+- **Time Allocation** — Compare stated priorities vs. actual time spent
+- **Pattern Detection** — Identify avoidance behaviors and execution gaps
+- **Decision Log** — Track pivots, strategies, and their outcomes
 
-  * **Backend:** FastAPI | CrewAI | Groq (Llama 3.3 70B) | SQLAlchemy (PostgreSQL)
-  * **Frontend:** Next.js 14 | TypeScript | Tailwind CSS (Reflog Palette: `#F59E0B`, `#10B981`, `#EF4444`)
-  * **AI:** Fast multi-agent strategic deliberation via Groq API.
-  * **Data:** Secure PostgreSQL storage, self-hostable.
+### 🎨 Modern Experience
+- **Beautiful Dark UI** — Premium design with animated gradients
+- **Real-time Toasts** — Instant feedback on all actions
+- **Mobile-Responsive** — Works on any device
+- **Fast & Smooth** — Built with Next.js 14 + Turbopack
 
-## 📖 How reflog Works
+---
 
-1.  **Onboard Your Business:** Tell **reflog** what you're building, your current stage, primary metrics (MRR, users, etc.), and biggest challenge.
-2.  **Get Your Baseline:** Receive the first AI-driven strategic assessment highlighting potential blind spots and execution gaps.
-3.  **Weekly Strategic Review:**
-      * *Wins:* What actually shipped/closed/launched this week?
-      * *Metrics:* MRR, users, runway (with context for changes)
-      * *Biggest Blocker:* What's *actually* stopping progress?
-      * *What You're Avoiding:* The hard conversation or task you keep postponing
-      * *Next Week's Focus:* ONE thing that will move the needle
-4.  **Daily Check-ins (Optional):** Quick energy level + today's needle-moving task
-5.  **Time Allocation Tracking:** Log where your hours actually go (product vs. sales vs. ops). **reflog** compares to your stated priorities.
-6.  **Decision & Strategy Log:** Track major business decisions, pivots, and strategic shifts. Get AI analysis on alignment with your goals and market reality.
-7.  **Review AI Insights & Chat:** Get strategic analysis on your execution patterns. Use chat to pressure-test decisions and receive multi-agent perspectives.
-8.  **Monitor Your Dashboard:** Visualize metrics, runway, time allocation vs. priorities, and recent AI strategic feedback.
+## 🛠️ Tech Stack
 
-## 📊 Current Features (MVP Plan)
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | Next.js 14, TypeScript, Tailwind CSS, Framer Motion |
+| **Backend** | FastAPI, SQLAlchemy, PostgreSQL |
+| **AI/LLM** | Groq, OpenAI, Ollama, CrewAI (multi-agent) |
+| **Auth** | Clerk |
+| **Integrations** | Google OAuth 2.0 (Calendar + Gmail) |
+| **Rate Limiting** | SlowAPI with in-memory + Redis support |
 
-  * Business metrics tracking (MRR, users, runway, burn rate, custom metrics)
-  * Multi-agent AI strategic deliberation
-  * Weekly strategic review system
-  * Time allocation tracking & analysis (stated vs. actual priorities)
-  * Pattern detection (avoiding sales, vanity metrics, building in vacuum)
-  * Brutally honest, data-grounded strategic feedback
-  * Interactive founder dashboard with key business metrics
-  * AI Chat interface for strategic pressure-testing
-  * Decision & Strategy Log with AI analysis
-  * OKR/Goal tracking with AI validation
+---
 
-## 🌱 Future Vision: Your Personal Advisory Board
+## 🚀 Quick Start
 
-While the MVP delivers tangible value for founder accountability today, the long-term vision is much broader:
+### Prerequisites
+- Node.js 18+
+- Python 3.11+
+- PostgreSQL (or Neon.tech for serverless)
+- Groq API key (free at [console.groq.com](https://console.groq.com))
 
-**reflog** aims to evolve into an integrated AI advisory board – your personal strategic council. Imagine it connecting seamlessly with Stripe (revenue data), your CRM (customer conversations), calendar (time allocation), and analytics tools, providing holistic, context-aware strategic guidance. Today's focus on core business execution is the essential first step on that journey.
+### Backend Setup
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
+# Create .env file
+cp .env.example .env
+# Add your GROQ_API_KEY, DATABASE_URL, etc.
+
+uvicorn main:app --reload
+```
+
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Visit `http://localhost:3000` 🎉
+
+---
+
+## ⚙️ Environment Variables
+
+### Backend (`.env`)
+```env
+# Required
+DATABASE_URL=postgresql://...
+GROQ_API_KEY=gsk_...
+ENCRYPTION_KEY=...  # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+# Optional - Google OAuth
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+INTEGRATION_MODE=production  # or "mock" for demo data
+
+# Optional - Multi-LLM
+PLATFORM_OPENAI_API_KEY=...
+DEFAULT_LLM_PROVIDER=groq  # groq, openai, or ollama
+```
+
+### Frontend (`.env.local`)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+CLERK_SECRET_KEY=...
+```
+
+---
+
+## 📁 Project Structure
+
+```
+reflog-founders/
+├── backend/
+│   ├── main.py              # FastAPI app
+│   ├── cos_engine.py        # Chief of Staff AI engine
+│   ├── llm/                  # Multi-LLM providers
+│   ├── integrations/         # Google, GitHub, etc.
+│   ├── routers/              # API endpoints
+│   └── models.py             # SQLAlchemy models
+├── frontend/
+│   ├── app/                  # Next.js app router
+│   ├── components/           # React components
+│   │   ├── CommandCenter.tsx # Main dashboard
+│   │   ├── Settings.tsx      # Settings modal
+│   │   └── ...
+│   └── public/               # Static assets
+└── README.md
+```
+
+---
+
+## 🗺️ Roadmap
+
+- [x] Multi-LLM provider support (Groq, OpenAI, Ollama)
+- [x] Google Calendar & Gmail integration
+- [x] Rate limiting middleware
+- [x] Settings with Google Connect UI
+- [ ] Stripe billing integration
+- [ ] GitHub activity insights
+- [ ] Slack integration
+- [ ] Mobile app (React Native)
+- [ ] Team collaboration features
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guidelines before submitting PRs.
+
+---
+
+## 📄 License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">
+  <strong>Built for founders who want clarity, not validation.</strong>
+</p>
