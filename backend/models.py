@@ -112,6 +112,40 @@ class LifeEvent(Base):
     time_horizon = Column(String(50), nullable=True)
     outcome = Column(Text, nullable=True)
 
+    # Pivot Simulator fields
+    simulation_result = Column(JSON, nullable=True)  # AI simulation output
+    simulation_type = Column(String(50), nullable=True)  # "pivot", "feature", "market"
+    survival_probability = Column(Float, nullable=True)  # 0-100%
+    comparable_startups = Column(JSON, nullable=True)  # Similar pivots from data
+    simulation_date = Column(DateTime, nullable=True)
+    brutal_truth = Column(Text, nullable=True)  # One paragraph honest assessment
+
+
+class ShadowData(Base):
+    """Stores metadata from Local Truth Agent - NO CODE, only stats"""
+    __tablename__ = "shadow_data"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    submission_date = Column(DateTime, default=datetime.utcnow)
+
+    # Git metadata (NEVER actual code)
+    total_commits = Column(Integer, default=0)
+    by_directory = Column(JSON, nullable=True)  # {"frontend": 40, "backend": 10}
+    by_file_type = Column(JSON, nullable=True)  # {".css": 30, ".py": 20}
+    commit_hours = Column(JSON, nullable=True)  # Distribution by hour of day
+    commit_days = Column(JSON, nullable=True)  # Distribution by day of week
+    focus_score = Column(Float, nullable=True)  # 0-100, how scattered vs focused
+
+    # Analysis results
+    stated_priority = Column(String(100), nullable=True)
+    actual_focus = Column(String(100), nullable=True)
+    discrepancy_score = Column(Float, nullable=True)  # 0-100, how far off
+
+    # AI-generated roast
+    roast_text = Column(Text, nullable=True)
+    truth_bombs = Column(JSON, nullable=True)  # List of uncomfortable truths
+
 
 class BusinessMetric(Base):
     __tablename__ = "business_metrics"

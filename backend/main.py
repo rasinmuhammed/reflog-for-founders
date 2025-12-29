@@ -29,6 +29,7 @@ from middleware.rate_limit import RateLimitMiddleware
 from routers import users, checkins, score, gamification, oauth
 from routers import workflows as cos_workflows
 from routers import dashboard, commitments, analysis, decisions, metrics, chat, time_allocation, reviews
+from routers import pivot_simulator, shadow  # Phase 2 predictive features
 
 # Import Board of Directors (unified agent architecture)
 try:
@@ -84,6 +85,10 @@ app.include_router(metrics.router)  # Business metrics
 app.include_router(chat.router)  # AI mentor chat
 app.include_router(time_allocation.router)  # Time tracking
 app.include_router(reviews.router)  # Weekly reviews & OKRs
+
+# Phase 2: Predictive Features
+app.include_router(pivot_simulator.router)  # Pivot Simulator
+app.include_router(shadow.router)  # Shadow Mode - The Roast
 
 # Initialize GitHub analyzer (single instance)
 github_analyzer = GitHubAnalyzer()
