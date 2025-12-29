@@ -30,6 +30,7 @@ from routers import users, checkins, score, gamification, oauth
 from routers import workflows as cos_workflows
 from routers import dashboard, commitments, analysis, decisions, metrics, chat, time_allocation, reviews
 from routers import pivot_simulator, shadow  # Phase 2 predictive features
+from routers import alerts  # Drift alerts
 
 # Import Board of Directors (unified agent architecture)
 try:
@@ -89,6 +90,7 @@ app.include_router(reviews.router)  # Weekly reviews & OKRs
 # Phase 2: Predictive Features
 app.include_router(pivot_simulator.router)  # Pivot Simulator
 app.include_router(shadow.router)  # Shadow Mode - The Roast
+app.include_router(alerts.router)  # Drift Alerts
 
 # Initialize GitHub analyzer (single instance)
 github_analyzer = GitHubAnalyzer()
