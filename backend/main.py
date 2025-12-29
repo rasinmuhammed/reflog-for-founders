@@ -24,15 +24,17 @@ from pydantic import BaseModel
 from email_service import EmailService
 from encryption import encrypt_value, decrypt_value, is_encrypted
 from middleware.rate_limit import RateLimitMiddleware
+
+# Import all routers
 from routers import users, checkins, score, gamification, oauth
 from routers import workflows as cos_workflows
+from routers import dashboard, commitments, analysis, decisions, metrics, chat, time_allocation, reviews
 
-# Import founder agents with fallback
+# Import Board of Directors (unified agent architecture)
 try:
-    from founder_agents import get_founder_agents
+    from board_of_directors import BoardOfDirectors, get_founder_agents
 except ImportError:
-    print("WARNING: founder_agents.py not found. Using default agents.")
-    pass
+    print("WARNING: board_of_directors.py not found.")
 
 # Initialize database
 init_db()
@@ -72,6 +74,16 @@ app.include_router(score.router)
 app.include_router(gamification.router)
 app.include_router(cos_workflows.router)  # AI Chief of Staff workflows
 app.include_router(oauth.router)  # Google OAuth endpoints
+
+# New modular routers
+app.include_router(dashboard.router)  # Dashboard & unified metrics
+app.include_router(commitments.router)  # Daily commitments
+app.include_router(analysis.router)  # GitHub & time analysis
+app.include_router(decisions.router)  # Life/business decisions
+app.include_router(metrics.router)  # Business metrics
+app.include_router(chat.router)  # AI mentor chat
+app.include_router(time_allocation.router)  # Time tracking
+app.include_router(reviews.router)  # Weekly reviews & OKRs
 
 # Initialize GitHub analyzer (single instance)
 github_analyzer = GitHubAnalyzer()
@@ -1390,19 +1402,27 @@ async def create_weekly_review(
             detail="Weekly review already submitted for this week"
         )
 
-    from founder_agents import business_strategist, market_realist, execution_enforcer
+    from board_of_directors import BoardOfDirectors
     from crewai import Task, Crew, Process
+    
+    # Get agents from Board of Directors
+    groq_key = get_user_groq_key(user.id, db)
+    board = BoardOfDirectors(groq_key, "business")
+    agents = board.get_agents()
+    strategist = agents.get("strategist")
+    market_realist = agents.get("market_realist")
+    execution_enforcer = agents.get("execution_enforcer")
 
     review_task = Task(
         description=f"""Analyze this founder's weekly review:
         ... (rest of task description) ...
         """,
-        agent=business_strategist,
+        agent=strategist,
         expected_output="Honest analysis with specific actionable feedback"
     )
 
     crew = Crew(
-        agents=[business_strategist, market_realist, execution_enforcer],
+        agents=[strategist, market_realist, execution_enforcer],
         tasks=[review_task],
         process=Process.sequential,
         verbose=False
@@ -1455,20 +1475,25 @@ def create_okr(
     """Set quarterly OKRs with AI validation"""
     user = get_user_by_email_lookup(email, db)  # CHANGED
 
-    from founder_agents import business_strategist
+    from board_of_directors import BoardOfDirectors
     from crewai import Task, Crew, Process
+    
+    # Get strategist from Board of Directors
+    groq_key = get_user_groq_key(user.id, db)
+    board = BoardOfDirectors(groq_key, "business")
+    strategist = board.get_agent("strategist")
 
     # ... (rest of logic is correct)
     validation_task = Task(
         description=f"""Validate this OKR:
         ... (rest of task description) ...
         """,
-        agent=business_strategist,
+        agent=strategist,
         expected_output="Validation feedback on the OKR"
     )
 
     crew = Crew(
-        agents=[business_strategist],
+        agents=[strategist],
         tasks=[validation_task],
         process=Process.sequential,
         verbose=False
@@ -1907,7 +1932,7 @@ def set_groq_api_key(
 
     # Test the API key before saving
     try:
-        from agents import create_groq_llm
+        from board_of_directors import create_groq_llm
         test_llm = create_groq_llm(key_data.groq_api_key)
     except Exception as e:
         raise HTTPException(

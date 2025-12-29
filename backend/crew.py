@@ -1,5 +1,5 @@
 from crewai import Task, Crew, Process
-from agents import get_agents
+from board_of_directors import get_agents, BoardOfDirectors
 from typing import Dict, List
 import json
 import models
@@ -14,11 +14,15 @@ class ReflogAdvisoryBoard:
         if not groq_api_key:
             raise ValueError("Groq API key is required")
 
-        agents = get_agents(groq_api_key)
-        self.analyst = agents["analyst"]
-        self.psychologist = agents["psychologist"]
-        self.strategist = agents["strategist"]
-        self.challenger = agents["challenger"]
+        # Use Board of Directors for agents
+        board = BoardOfDirectors(groq_api_key, "business")
+        agents = board.get_agents()
+        
+        # Map to expected agent names (fallback to strategist if not found)
+        self.analyst = agents.get("strategist")  # Using strategist as analyst
+        self.psychologist = agents.get("market_realist")  # Market realist as psychologist
+        self.strategist = agents.get("strategist")
+        self.challenger = agents.get("challenger")
 
     def analyze_developer(self, github_data: Dict, checkin_history: List[Dict] = None) -> Dict:
         """Main analysis flow: All agents deliberate on the developer's situation"""
