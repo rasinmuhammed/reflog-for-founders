@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Skull, AlertTriangle, Eye, Download, RefreshCw, Flame, Target, TrendingDown, Sparkles, ArrowRight } from 'lucide-react'
+import {
+    Skull, AlertTriangle, Eye, Download, RefreshCw, Flame, Target,
+    TrendingDown, Sparkles, ArrowRight, Copy, Twitter, Share2, Zap
+} from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -39,8 +43,10 @@ const DEMO_DATA: ShadowData = {
 export default function ShadowRoast({ userIdentifier }: ShadowRoastProps) {
     const [data, setData] = useState<ShadowData | null>(null)
     const [loading, setLoading] = useState(true)
+    const [showDemo, setShowDemo] = useState(true)
+    const [savageMode, setSavageMode] = useState(false)
+    const [copied, setCopied] = useState(false)
     const [refreshing, setRefreshing] = useState(false)
-    const [showDemo, setShowDemo] = useState(false)
 
     useEffect(() => {
         fetchRoast()
@@ -67,6 +73,21 @@ export default function ShadowRoast({ userIdentifier }: ShadowRoastProps) {
     const handleRefresh = () => {
         setRefreshing(true)
         fetchRoast()
+    }
+
+    const copyRoast = () => {
+        if (displayData?.roast) {
+            navigator.clipboard.writeText(displayData.roast)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        }
+    }
+
+    const shareToTwitter = () => {
+        if (displayData?.roast) {
+            const text = encodeURIComponent(`My brutal reality check from @ReflogApp:\n\n"${displayData.roast}"\n\nDiscrepancy: ${displayData.discrepancy_score}%\n\nGet yours: reflogapp.com`)
+            window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
+        }
     }
 
     if (loading) {
@@ -136,15 +157,37 @@ export default function ShadowRoast({ userIdentifier }: ShadowRoastProps) {
                             <p className="text-xs text-[#FBFAEE]/40">Your code vs your claims</p>
                         </div>
                     </div>
-                    {!isDemo && (
+                    <div className="flex items-center gap-2">
+                        {/* Copy Button */}
                         <button
-                            onClick={handleRefresh}
-                            disabled={refreshing}
-                            className="p-2 hover:bg-white/5 rounded-lg transition"
+                            onClick={copyRoast}
+                            className="p-2 hover:bg-white/5 rounded-lg transition flex items-center gap-1.5 text-xs"
+                            title="Copy roast"
                         >
-                            <RefreshCw className={`w-4 h-4 text-[#FBFAEE]/40 ${refreshing ? 'animate-spin' : ''}`} />
+                            <Copy className={`w-4 h-4 ${copied ? 'text-green-400' : 'text-[#FBFAEE]/60'}`} />
+                            {copied && <span className="text-green-400">Copied!</span>}
                         </button>
-                    )}
+
+                        {/* Share to Twitter */}
+                        <button
+                            onClick={shareToTwitter}
+                            className="p-2 hover:bg-white/5 rounded-lg transition group"
+                            title="Share on Twitter"
+                        >
+                            <Twitter className="w-4 h-4 text-[#1DA1F2] group-hover:scale-110 transition" />
+                        </button>
+
+                        {/* Refresh */}
+                        {!isDemo && (
+                            <button
+                                onClick={handleRefresh}
+                                disabled={refreshing}
+                                className="p-2 hover:bg-white/5 rounded-lg transition"
+                            >
+                                <RefreshCw className={`w-4 h-4 text-[#FBFAEE]/60 ${refreshing ? 'animate-spin' : ''}`} />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {!displayData ? (

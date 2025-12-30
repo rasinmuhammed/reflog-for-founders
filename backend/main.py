@@ -24,9 +24,14 @@ from pydantic import BaseModel
 from email_service import EmailService
 from encryption import encrypt_value, decrypt_value, is_encrypted
 from middleware.rate_limit import RateLimitMiddleware
+import os
+
+# Environment detection
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+IS_PRODUCTION = ENVIRONMENT == "production"
 
 # Import all routers
-from routers import users, checkins, score, gamification, oauth
+from routers import users, checkins, score, gamification, oauth, health
 from routers import workflows as cos_workflows
 from routers import dashboard, commitments, analysis, decisions, metrics, chat, time_allocation, reviews
 from routers import pivot_simulator, shadow  # Phase 2 predictive features
@@ -45,31 +50,45 @@ init_db()
 app = FastAPI(
     title="Reflog Executive Intelligence API",
     version="2.0.0",
-    description="Executive Intelligence platform for founders - keeps priorities sharp, turns meetings into decisions, protects founder time"
+    description="Executive Intelligence platform for founders",
+    docs_url=None if IS_PRODUCTION else "/docs",  # Disable docs in production
+    redoc_url=None if IS_PRODUCTION else "/redoc"
 )
 
 # Add Rate Limiting Middleware (BEFORE CORS)
 app.add_middleware(
     RateLimitMiddleware,
-    general_limit=100,      # 100 requests/minute for general
-    llm_limit=20,           # 20 requests/minute for LLM endpoints
-    auth_limit=10           # 10 requests/minute for auth
+    general_limit=100 if not IS_PRODUCTION else 60,  # Stricter in production
+    llm_limit=20 if not IS_PRODUCTION else 10,
+    auth_limit=10 if not IS_PRODUCTION else 5
 )
 
-# Add CORS Middleware
+# Configure CORS based on environment
+allowed_origins = [
+    "http://localhost:3000",  # Development
+    "https://clerk.com",      # Clerk authentication
+    "https://*.clerk.accounts.dev"
+]
+
+# Add production origins
+if IS_PRODUCTION:
+    production_origins = [
+        "https://reflogapp.com",
+        "https://www.reflogapp.com"
+    ]
+    allowed_origins = production_origins + ["https://clerk.com", "https://*.clerk.accounts.dev"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://clerk.com",
-        "https://*.clerk.accounts.dev"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],  # Explicit methods
     allow_headers=["*"],
+    max_age=3600  # Cache preflight requests for 1 hour
 )
 
 # Include routers
+app.include_router(health.router)  # Health check endpoints
 app.include_router(users.router)
 app.include_router(checkins.router)
 app.include_router(score.router)
