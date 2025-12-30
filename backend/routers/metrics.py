@@ -11,20 +11,11 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import models
 from database import get_db
+from db_utils import get_user
 from models import BusinessMetricCreate
 
 router = APIRouter(prefix="", tags=["Metrics"])
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 @router.post("/business-metrics/{email}")
@@ -34,7 +25,7 @@ def add_business_metric(
     db: Session = Depends(get_db)
 ):
     """Log a business metric (revenue, users, MRR, etc.)"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     db_metric = models.BusinessMetric(
         user_id=user.id,
@@ -64,7 +55,7 @@ def get_business_metrics(
     db: Session = Depends(get_db)
 ):
     """Get historical business metrics with trend analysis"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     cutoff = datetime.utcnow() - timedelta(days=days)
 
@@ -125,7 +116,7 @@ def get_metric_history(
     db: Session = Depends(get_db)
 ):
     """Get business metric history with optional type filter"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     cutoff = datetime.utcnow() - timedelta(days=days)
 
@@ -160,7 +151,7 @@ def get_metric_history(
 @router.get("/metric-summary/{email}")
 def get_metric_summary(email: str, db: Session = Depends(get_db)):
     """Get summary of all current metric values"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get distinct metric types
     metric_types = db.query(models.BusinessMetric.metric_type).filter(

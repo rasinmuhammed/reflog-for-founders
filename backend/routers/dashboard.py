@@ -11,21 +11,12 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import models
 from database import get_db
+from db_utils import get_user
 from schemas import UnifiedMetricsUpdate
 from cache import cache_5min, invalidate_user_cache
 
 router = APIRouter(prefix="", tags=["Dashboard"])
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 @router.get("/dashboard/{identifier}")
@@ -123,7 +114,7 @@ def get_dashboard(identifier: str, db: Session = Depends(get_db)):
 @router.get("/metrics/{email}")
 def get_unified_metrics(email: str, db: Session = Depends(get_db)):
     """Get all current metrics for the MetricsInput component"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     metric_types = ['mrr', 'customers', 'activeUsers', 'runway', 'churnRate', 'salesCalls', 'meetingsBooked']
     current = {}
@@ -145,7 +136,7 @@ def get_unified_metrics(email: str, db: Session = Depends(get_db)):
 @router.post("/metrics/{email}")
 def save_unified_metrics(email: str, metrics: UnifiedMetricsUpdate, db: Session = Depends(get_db)):
     """Save all metrics at once from the MetricsInput component"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     now = datetime.utcnow()
     metrics_data = metrics.model_dump()
@@ -168,7 +159,7 @@ def save_unified_metrics(email: str, metrics: UnifiedMetricsUpdate, db: Session 
 @router.get("/founder-dashboard/{email}")
 def get_founder_dashboard(email: str, db: Session = Depends(get_db)):
     """Return founder-specific dashboard data"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get check-ins for streak calculation
     checkins = db.query(models.CheckIn).filter(
@@ -214,7 +205,7 @@ def get_founder_dashboard(email: str, db: Session = Depends(get_db)):
 @router.get("/founder-score/{email}")
 def get_founder_score(email: str, db: Session = Depends(get_db)):
     """Calculate and return the founder's composite health score"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get data for calculations
     checkins = db.query(models.CheckIn).filter(

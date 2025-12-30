@@ -12,20 +12,11 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import models
 from database import get_db
+from db_utils import get_user
 from models import WeeklyReviewCreate, OKRCreate
 
 router = APIRouter(prefix="", tags=["Reviews"])
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 @router.post("/weekly-reviews/{email}")
@@ -35,7 +26,7 @@ def create_weekly_review(
     db: Session = Depends(get_db)
 ):
     """Submit weekly business review, get AI feedback"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     db_review = models.WeeklyReview(
         user_id=user.id,
@@ -71,7 +62,7 @@ def get_weekly_reviews(
     db: Session = Depends(get_db)
 ):
     """Get past weekly reviews to spot patterns"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     reviews = db.query(models.WeeklyReview).filter(
         models.WeeklyReview.user_id == user.id
@@ -99,7 +90,7 @@ def get_weekly_reviews(
 @router.get("/weekly-reviews/{email}/latest")
 def get_latest_review(email: str, db: Session = Depends(get_db)):
     """Get the most recent weekly review"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     review = db.query(models.WeeklyReview).filter(
         models.WeeklyReview.user_id == user.id
@@ -130,7 +121,7 @@ def create_okr(
     db: Session = Depends(get_db)
 ):
     """Set quarterly OKRs with AI validation"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     db_okr = models.OKR(
         user_id=user.id,
@@ -157,7 +148,7 @@ def create_okr(
 @router.get("/okrs/{email}")
 def get_okrs(email: str, db: Session = Depends(get_db)):
     """Get all OKRs for a user"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     okrs = db.query(models.OKR).filter(
         models.OKR.user_id == user.id
@@ -189,7 +180,7 @@ def update_okr(
     db: Session = Depends(get_db)
 ):
     """Update OKR progress or status"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     okr = db.query(models.OKR).filter(
         models.OKR.id == okr_id,

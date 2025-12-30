@@ -11,26 +11,17 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, date
 import models
 from database import get_db
+from db_utils import get_user
 from schemas import TimeAllocationEntry
 
 router = APIRouter(prefix="", tags=["Time Allocation"])
 
 
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
-
 
 @router.get("/time-allocation/{email}/today")
 def get_today_time_allocation(email: str, db: Session = Depends(get_db)):
     """Get today's time allocation entries"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     today_start = datetime.combine(date.today(), datetime.min.time())
 
@@ -58,7 +49,7 @@ def save_time_allocation(
     db: Session = Depends(get_db)
 ):
     """Save time allocation for today"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     today_start = datetime.combine(date.today(), datetime.min.time())
     now = datetime.utcnow()
@@ -93,7 +84,7 @@ def save_time_allocation(
 @router.get("/time-allocation/{email}/weekly")
 def get_weekly_time_allocation(email: str, db: Session = Depends(get_db)):
     """Get weekly time allocation summary"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     week_start = datetime.utcnow() - timedelta(days=7)
 
@@ -134,7 +125,7 @@ def log_time_allocation(
     db: Session = Depends(get_db)
 ):
     """Log time for a specific category"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     alloc = models.TimeAllocation(
         user_id=user.id,

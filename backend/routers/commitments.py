@@ -12,20 +12,11 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, date
 import models
 from database import get_db
+from db_utils import get_user
 from models import CheckInUpdate
 
 router = APIRouter(prefix="", tags=["Commitments"])
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 def calculate_streak(checkins: list) -> int:
@@ -96,7 +87,7 @@ def get_weekly_breakdown(checkins: list) -> dict:
 @router.get("/commitment/{email}/today")
 def get_today_commitment(email: str, db: Session = Depends(get_db)):
     """Get today's commitment if exists"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     today_start = datetime.combine(date.today(), datetime.min.time())
     today_end = datetime.combine(date.today(), datetime.max.time())
@@ -132,7 +123,7 @@ def get_today_commitment(email: str, db: Session = Depends(get_db)):
 @router.get("/commitment/{email}/pending")
 def get_pending_commitments(email: str, db: Session = Depends(get_db)):
     """Get all unreviewed commitments"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     pending = db.query(models.CheckIn).filter(
         models.CheckIn.user_id == user.id,
@@ -213,7 +204,7 @@ def get_commitment_stats(
     db: Session = Depends(get_db)
 ):
     """Get commitment statistics"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     cutoff = datetime.utcnow() - timedelta(days=days)
 
@@ -251,7 +242,7 @@ def get_commitment_stats(
 @router.get("/commitment/{email}/weekly-summary")
 def get_weekly_summary(email: str, db: Session = Depends(get_db)):
     """Get week-by-week commitment summary with insights"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get last 8 weeks of data
     cutoff = datetime.utcnow() - timedelta(weeks=8)

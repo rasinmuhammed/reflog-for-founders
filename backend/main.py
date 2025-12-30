@@ -115,44 +115,11 @@ app.include_router(alerts.router)  # Drift Alerts
 github_analyzer = GitHubAnalyzer()
 
 
-# ==============================================================================
-# Helper Function for User Lookup
-# ==============================================================================
+# Initialize GitHub analyzer (single instance)
+github_analyzer = GitHubAnalyzer()
 
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
-
-
-def get_user_groq_key(user_id: int, db: Session) -> str:
-    """Get user's Groq API key (decrypted) or raise error"""
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if not user.groq_api_key:
-        raise HTTPException(
-            status_code=400,
-            detail="Groq API key not configured. Please add your API key in settings."
-        )
-
-    # Decrypt the API key before returning
-    try:
-        if is_encrypted(user.groq_api_key):
-            return decrypt_value(user.groq_api_key)
-        return user.groq_api_key  # Backwards compatibility for unencrypted keys
-    except Exception:
-        return user.groq_api_key  # Fallback
-
-# ==============================================================================
-# User & Onboarding Endpoints (MOVED TO ROUTERS)
-# ==============================================================================
+# Import production-grade database utilities
+from db_utils import get_user, get_user_api_key
 
 
 @app.get("/")
@@ -230,7 +197,7 @@ def get_github_analysis(github_username: str, db: Session = Depends(get_db)):
 
 @app.get("/advice/{email}", response_model=List[AgentAdviceResponse])  # CHANGED
 def get_advice(email: str, limit: int = 20, db: Session = Depends(get_db)):  # CHANGED
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     advice = db.query(models.AgentAdvice).filter(
         models.AgentAdvice.user_id == user.id
@@ -332,10 +299,10 @@ async def chat_with_mentor(
     message: ChatMessage,
     db: Session = Depends(get_db)
 ):
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get user's API key
-    groq_api_key = get_user_groq_key(user.id, db)
+    groq_api_key = get_user_api_key(user.id, db)
 
     github_analysis = None
     if user.github_username:
@@ -415,7 +382,7 @@ def create_life_decision(
     db: Session = Depends(get_db)
 ):
     """Create a new life decision and analyze it with AI"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # ... (rest of logic is correct)
     context_data = {
@@ -440,7 +407,7 @@ def create_life_decision(
 
     try:
         # Get user's API key and init crew
-        groq_api_key = get_user_groq_key(user.id, db)
+        groq_api_key = get_user_api_key(user.id, db)
         from crew import ReflogAdvisoryBoard
         advisory_board = ReflogAdvisoryBoard(groq_api_key)
 
@@ -503,7 +470,7 @@ def reanalyze_life_decision(
     db: Session = Depends(get_db)
 ):
     """Re-run AI analysis on an existing life decision"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     life_event = db.query(models.LifeEvent).filter(
         models.LifeEvent.id == decision_id,
@@ -519,7 +486,7 @@ def reanalyze_life_decision(
 
     try:
         # Get user's API key and init crew
-        groq_api_key = get_user_groq_key(user.id, db)
+        groq_api_key = get_user_api_key(user.id, db)
         from crew import ReflogAdvisoryBoard
         advisory_board = ReflogAdvisoryBoard(groq_api_key)
 
@@ -564,7 +531,7 @@ def get_life_decisions(
     db: Session = Depends(get_db)
 ):
     """Get all life decisions for a user"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     events = db.query(models.LifeEvent).filter(
         models.LifeEvent.user_id == user.id
@@ -596,7 +563,7 @@ def get_life_decision_detail(
     db: Session = Depends(get_db)
 ):
     """Get detailed view of a specific life decision"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     event = db.query(models.LifeEvent).filter(
         models.LifeEvent.id == decision_id,
@@ -639,7 +606,7 @@ def evaluate_decision(
     user = db.query(models.User).filter(models.User.id == event.user_id).first()
 
     # Get user's API key and init crew
-    groq_api_key = get_user_groq_key(user.id, db)
+    groq_api_key = get_user_api_key(user.id, db)
     from crew import ReflogAdvisoryBoard
     advisory_board = ReflogAdvisoryBoard(groq_api_key)
 
@@ -673,7 +640,7 @@ def evaluate_decision(
 @app.get("/debug/life-decisions/{email}")  # CHANGED
 def debug_life_decisions(email: str, db: Session = Depends(get_db)):  # CHANGED
     """Debug endpoint to see raw life decision data"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # ... (rest of logic is correct)
     events = db.query(models.LifeEvent).filter(
@@ -710,7 +677,7 @@ def debug_life_decisions(email: str, db: Session = Depends(get_db)):  # CHANGED
 @app.get("/commitments/{email}/today")  # CHANGED
 def get_today_commitment(email: str, db: Session = Depends(get_db)):  # CHANGED
     """Get today's commitment if exists"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # ... (rest of logic is correct)
     today_start = datetime.combine(datetime.now().date(), time.min)
@@ -747,7 +714,7 @@ def get_today_commitment(email: str, db: Session = Depends(get_db)):  # CHANGED
 @app.get("/commitments/{email}/pending")  # CHANGED
 def get_pending_commitments(email: str, db: Session = Depends(get_db)):  # CHANGED
     """Get all unreviewed commitments"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # ... (rest of logic is correct)
     week_ago = datetime.now() - timedelta(days=7)
@@ -806,7 +773,7 @@ def review_commitment(
     total_count = len(recent_checkins)
 
     # Get user's API key and init crew
-    groq_api_key = get_user_groq_key(user.id, db)
+    groq_api_key = get_user_api_key(user.id, db)
     from crew import ReflogAdvisoryBoard
     advisory_board = ReflogAdvisoryBoard(groq_api_key)
 
@@ -847,7 +814,7 @@ def get_commitment_stats(
     db: Session = Depends(get_db)
 ):
     """Get commitment statistics"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     since = datetime.now() - timedelta(days=days)
 
@@ -957,7 +924,7 @@ def get_weekly_breakdown(checkins: list) -> list:
 @app.get("/commitments/{email}/reminder-needed")  # CHANGED
 def check_reminder_needed(email: str, db: Session = Depends(get_db)):  # CHANGED
     """Check if user needs a reminder (for notifications)"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # ... (rest of logic is correct)
     today_start = datetime.combine(datetime.now().date(), time.min)
@@ -996,7 +963,7 @@ def get_weekly_summary(
     db: Session = Depends(get_db)
 ):
     """Get week-by-week commitment summary with insights"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # ... (rest of logic is correct)
     four_weeks_ago = datetime.now() - timedelta(days=28)
@@ -1054,7 +1021,7 @@ def add_business_metric(
     db: Session = Depends(get_db)
 ):
     """Log a business metric (revenue, users, MRR, etc.)"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # Note: Your Pydantic model 'BusinessMetricCreate' does not have 'target' or 'notes'.
     # The model in 'business_models.py' *did* have them.
@@ -1091,7 +1058,7 @@ def get_business_metrics(
     db: Session = Depends(get_db)
 ):
     """Get historical business metrics with trend analysis"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     since = datetime.now() - timedelta(days=days)
 
@@ -1136,7 +1103,7 @@ class UnifiedMetricsUpdate(BaseModel):
 @app.get("/metrics/{email}")
 def get_unified_metrics(email: str, db: Session = Depends(get_db)):
     """Get all current metrics for the MetricsInput component"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get most recent value for each metric type
     metric_types = ['mrr', 'customers', 'activeUsers', 'runway', 'churnRate', 'salesCalls', 'meetingsBooked']
@@ -1179,7 +1146,7 @@ def get_unified_metrics(email: str, db: Session = Depends(get_db)):
 @app.post("/metrics/{email}")
 def save_unified_metrics(email: str, metrics: UnifiedMetricsUpdate, db: Session = Depends(get_db)):
     """Save all metrics at once from the MetricsInput component"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Save each metric type
     metrics_dict = metrics.dict()
@@ -1201,7 +1168,7 @@ def save_unified_metrics(email: str, metrics: UnifiedMetricsUpdate, db: Session 
 @app.get("/founder-score/{email}")
 def get_founder_score(email: str, db: Session = Depends(get_db)):
     """Calculate and return the founder's composite health score"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # 1. Revenue Velocity (30%) - MRR week-over-week change
     mrr_metrics = db.query(models.BusinessMetric).filter(
@@ -1305,7 +1272,7 @@ class TimeAllocationEntry(BaseModel):
 @app.get("/time-allocation/{email}/today")
 def get_today_time_allocation(email: str, db: Session = Depends(get_db)):
     """Get today's time allocation entries"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     today_start = datetime.combine(datetime.now().date(), time.min)
     today_end = datetime.combine(datetime.now().date(), time.max)
@@ -1326,7 +1293,7 @@ def get_today_time_allocation(email: str, db: Session = Depends(get_db)):
 @app.post("/time-allocation/{email}")
 def save_time_allocation(email: str, data: TimeAllocationEntry, db: Session = Depends(get_db)):
     """Save time allocation for today"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     today_start = datetime.combine(datetime.now().date(), time.min)
     today_end = datetime.combine(datetime.now().date(), time.max)
@@ -1379,7 +1346,7 @@ def save_time_allocation(email: str, data: TimeAllocationEntry, db: Session = De
 @app.get("/time-allocation/{email}/weekly")
 def get_weekly_time_allocation(email: str, db: Session = Depends(get_db)):
     """Get weekly time allocation summary"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     week_ago = datetime.now() - timedelta(days=7)
 
@@ -1411,7 +1378,7 @@ async def create_weekly_review(
     db: Session = Depends(get_db)
 ):
     """Submit weekly business review, get AI feedback"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # ... (rest of logic is correct)
     today = datetime.now()
@@ -1432,7 +1399,7 @@ async def create_weekly_review(
     from crewai import Task, Crew, Process
     
     # Get agents from Board of Directors
-    groq_key = get_user_groq_key(user.id, db)
+    groq_key = get_user_api_key(user.id, db)
     board = BoardOfDirectors(groq_key, "business")
     agents = board.get_agents()
     strategist = agents.get("strategist")
@@ -1481,7 +1448,7 @@ def get_weekly_reviews(
     db: Session = Depends(get_db)
 ):
     """Get past weekly reviews to spot patterns"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     reviews = db.query(WeeklyReview).filter(
         WeeklyReview.user_id == user.id
@@ -1499,13 +1466,13 @@ def create_okr(
     db: Session = Depends(get_db)
 ):
     """Set quarterly OKRs with AI validation"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     from board_of_directors import BoardOfDirectors
     from crewai import Task, Crew, Process
     
     # Get strategist from Board of Directors
-    groq_key = get_user_groq_key(user.id, db)
+    groq_key = get_user_api_key(user.id, db)
     board = BoardOfDirectors(groq_key, "business")
     strategist = board.get_agent("strategist")
 
@@ -1547,7 +1514,7 @@ def get_okrs(
     db: Session = Depends(get_db)
 ):
     """Get all OKRs for a user"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     okrs = db.query(OKR).filter(
         OKR.user_id == user.id
@@ -1565,7 +1532,7 @@ def log_time_allocation(
     db: Session = Depends(get_db)
 ):
     """Log how time was spent"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     new_allocation = TimeAllocation(
         user_id=user.id,
@@ -1587,7 +1554,7 @@ def analyze_time_allocation(
     db: Session = Depends(get_db)
 ):
     """AI analysis of time allocation vs. stated priorities"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     since = datetime.now() - timedelta(weeks=weeks)
 
@@ -1623,7 +1590,7 @@ def analyze_time_allocation(
 @app.get("/dashboard-founder/{email}")  # CHANGED
 def get_founder_dashboard(email: str, db: Session = Depends(get_db)):  # CHANGED
     """Return founder-specific dashboard data"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     # ... (rest of logic is correct)
     recent_metrics = db.query(BusinessMetric).filter(
@@ -1676,7 +1643,7 @@ def track_business_metric(
     db: Session = Depends(get_db)
 ):
     """Track business metrics"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     business_metric = models.BusinessMetric(
         user_id=user.id,
@@ -1711,7 +1678,7 @@ def get_metric_history(
     db: Session = Depends(get_db)
 ):
     """Get business metric history"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     since = datetime.now() - timedelta(days=days)
 
@@ -1746,7 +1713,7 @@ def get_metric_history(
 @app.get("/dashboard-founder/{email}")
 def get_founder_dashboard(email: str, db: Session = Depends(get_db)):
     """Founder-specific dashboard"""
-    user = get_user_by_email_lookup(email, db)  # CHANGED
+    user = get_user(email, db)  # CHANGED
 
     recent_metrics = db.query(models.BusinessMetric).filter(
         models.BusinessMetric.user_id == user.id
@@ -1823,7 +1790,7 @@ def get_notification_preferences(
     db: Session = Depends(get_db)
 ):
     """Get user's notification preferences"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     return {
         "email_notifications_enabled": user.email_notifications_enabled,
@@ -1840,7 +1807,7 @@ def update_notification_preferences(
     db: Session = Depends(get_db)
 ):
     """Update user's notification preferences"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Update preferences
     user.email_notifications_enabled = preferences.email_notifications_enabled
@@ -1874,7 +1841,7 @@ def send_test_notification(
     db: Session = Depends(get_db)
 ):
     """Send a test notification to user"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     user_name = user.full_name or user.email.split('@')[0]
     accountability_style = user.accountability_style or 'balanced'
@@ -1947,7 +1914,7 @@ def set_groq_api_key(
     db: Session = Depends(get_db)
 ):
     """Set or update user's Groq API key (encrypted)"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Validate the API key format (starts with gsk_)
     if not key_data.groq_api_key.startswith('gsk_'):
@@ -1983,7 +1950,7 @@ def check_groq_key_status(
     db: Session = Depends(get_db)
 ):
     """Check if user has a Groq API key configured"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     return {
         "has_key": user.groq_api_key is not None,
@@ -1997,7 +1964,7 @@ def delete_groq_api_key(
     db: Session = Depends(get_db)
 ):
     """Delete user's Groq API key"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     user.groq_api_key = None
     db.commit()
@@ -2022,7 +1989,7 @@ class QuickReview(BaseModel):
 @app.get("/quick-checkin/{email}/today")
 def get_today_commitment(email: str, db: Session = Depends(get_db)):
     """Get today's quick commitment if exists"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
     today = datetime.now().date()
 
     checkin = db.query(models.CheckIn).filter(
@@ -2048,7 +2015,7 @@ def create_quick_commitment(
     db: Session = Depends(get_db)
 ):
     """Create today's one-thing commitment"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Create check-in with commitment
     checkin = models.CheckIn(
@@ -2088,7 +2055,7 @@ def review_quick_commitment(
     db: Session = Depends(get_db)
 ):
     """Review today's commitment - did you ship it?"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
     today = datetime.now().date()
 
     checkin = db.query(models.CheckIn).filter(
@@ -2129,7 +2096,7 @@ def review_quick_commitment(
 @app.get("/analysis/{email}/patterns")
 def get_user_patterns(email: str, db: Session = Depends(get_db)):
     """Get avoidance patterns for a user"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get last 30 days of check-ins
     cutoff = datetime.now() - timedelta(days=30)
@@ -2154,7 +2121,7 @@ def get_user_patterns(email: str, db: Session = Depends(get_db)):
 @app.get("/analysis/{email}/progress")
 def get_user_progress(email: str, db: Session = Depends(get_db)):
     """Get progress comparison for a user"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get last 5 weeks of check-ins
     cutoff = datetime.now() - timedelta(weeks=5)

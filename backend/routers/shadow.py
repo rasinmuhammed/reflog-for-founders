@@ -13,6 +13,7 @@ from typing import Optional, List, Dict
 from pydantic import BaseModel
 import models
 from database import get_db
+from db_utils import get_user
 from encryption import decrypt_value, is_encrypted
 
 router = APIRouter(prefix="/shadow", tags=["Shadow Mode"])
@@ -38,16 +39,6 @@ class RoastResponse(BaseModel):
     truth_bombs: List[str]
     has_data: bool
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 def calculate_focus_score(by_directory: Dict[str, int]) -> float:
@@ -232,7 +223,7 @@ def submit_shadow_data(
     This endpoint receives ONLY metadata - never actual code.
     Privacy is maintained while still enabling brutally honest analysis.
     """
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get user's stated priority from their check-ins or goals
     stated_priority = user.primary_goal or "Not specified"
@@ -285,7 +276,7 @@ def get_roast(email: str, db: Session = Depends(get_db)):
 
     This is the killer feature. Shows founders their self-deception.
     """
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get latest shadow data
     shadow = db.query(models.ShadowData).filter(
@@ -318,7 +309,7 @@ def get_roast(email: str, db: Session = Depends(get_db)):
 @router.get("/insights/{email}")
 def get_shadow_insights(email: str, db: Session = Depends(get_db)):
     """Get detailed work pattern analysis"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get all shadow data for trends
     shadows = db.query(models.ShadowData).filter(
@@ -367,7 +358,7 @@ def get_shadow_history(
     db: Session = Depends(get_db)
 ):
     """Get historical shadow data submissions"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     shadows = db.query(models.ShadowData).filter(
         models.ShadowData.user_id == user.id

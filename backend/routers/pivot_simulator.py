@@ -13,6 +13,7 @@ from typing import Optional, List, Dict
 from pydantic import BaseModel
 import models
 from database import get_db
+from db_utils import get_user
 from encryption import decrypt_value, is_encrypted
 
 router = APIRouter(prefix="", tags=["Pivot Simulator"])
@@ -40,16 +41,6 @@ class PivotSimulationResponse(BaseModel):
     recommendations: List[str]
     simulated_at: str
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 def get_user_groq_key(user_id: int, db: Session) -> str:
@@ -90,7 +81,7 @@ def simulate_pivot(
     - 90-day projected outcome
     - "The Brutal Truth" - one paragraph of honest assessment
     """
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get Groq API key (required for AI analysis)
     try:
@@ -190,7 +181,7 @@ def get_simulation_result(
     db: Session = Depends(get_db)
 ):
     """Get a previously run simulation result"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     event = db.query(models.LifeEvent).filter(
         models.LifeEvent.id == decision_id,
@@ -221,7 +212,7 @@ def get_all_simulations(
     db: Session = Depends(get_db)
 ):
     """Get all pivot simulations for a user"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     events = db.query(models.LifeEvent).filter(
         models.LifeEvent.user_id == user.id,

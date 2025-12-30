@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
+from db_utils import get_user
 import models
 from models import CheckInCreate, CheckInResponse, CheckInUpdate
 from typing import List
@@ -10,16 +11,10 @@ from typing import List
 router = APIRouter(prefix="/checkins", tags=["checkins"])
 
 
-def get_user_by_email_lookup(email: str, db: Session):
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail=f"User with email '{email}' not found.")
-    return user
-
 
 @router.get("/{email}", response_model=List[CheckInResponse])
 def get_checkins(email: str, limit: int = 30, db: Session = Depends(get_db)):
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
     checkins = db.query(models.CheckIn).filter(
         models.CheckIn.user_id == user.id
     ).order_by(models.CheckIn.timestamp.desc()).limit(limit).all()
@@ -32,7 +27,7 @@ def create_checkin(
     checkin: CheckInCreate,
     db: Session = Depends(get_db)
 ):
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Streak Logic
     now = datetime.utcnow()

@@ -13,22 +13,13 @@ from datetime import datetime
 from typing import Dict
 import models
 from database import get_db
+from db_utils import get_user
 from models import LifeDecisionCreate
 from encryption import decrypt_value, is_encrypted
 from board_of_directors import BoardOfDirectors
 
 router = APIRouter(prefix="", tags=["Decisions"])
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 def get_user_groq_key(user_id: int, db: Session) -> str:
@@ -58,7 +49,7 @@ def create_life_decision(
     db: Session = Depends(get_db)
 ):
     """Create a new life decision and analyze it with AI"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Create the decision record
     db_decision = models.LifeDecision(
@@ -131,7 +122,7 @@ def reanalyze_life_decision(
     db: Session = Depends(get_db)
 ):
     """Re-run AI analysis on an existing life decision"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     decision = db.query(models.LifeDecision).filter(
         models.LifeDecision.id == decision_id,
@@ -172,7 +163,7 @@ def get_life_decisions(
     db: Session = Depends(get_db)
 ):
     """Get all life decisions for a user"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     decisions = db.query(models.LifeDecision).filter(
         models.LifeDecision.user_id == user.id
@@ -203,7 +194,7 @@ def get_life_decision_detail(
     db: Session = Depends(get_db)
 ):
     """Get detailed view of a specific life decision"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     decision = db.query(models.LifeDecision).filter(
         models.LifeDecision.id == decision_id,

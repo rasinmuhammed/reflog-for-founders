@@ -12,20 +12,11 @@ from datetime import datetime, timedelta
 from typing import Optional
 import models
 from database import get_db
+from db_utils import get_user
 from services.drift_detection import DriftDetector, run_drift_check
 
 router = APIRouter(prefix="/alerts", tags=["Alerts"])
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 @router.get("/{email}")
@@ -44,7 +35,7 @@ def get_user_alerts(
     - Commitment crash alerts
     - High discrepancy alerts
     """
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Get drift alerts from AgentAdvice
     query = db.query(models.AgentAdvice).filter(
@@ -81,7 +72,7 @@ def get_user_alerts(
 @router.get("/{email}/count")
 def get_alert_count(email: str, db: Session = Depends(get_db)):
     """Get count of active alerts for badge display"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     count = db.query(models.AgentAdvice).filter(
         models.AgentAdvice.user_id == user.id,
@@ -133,7 +124,7 @@ def get_drift_status(email: str, db: Session = Depends(get_db)):
     - Focus score trend
     - Overall drift risk level
     """
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     # Days since last check-in
     last_checkin = db.query(models.CheckIn).filter(

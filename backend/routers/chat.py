@@ -10,22 +10,13 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import models
 from database import get_db
+from db_utils import get_user
 from models import ChatMessage
 from encryption import decrypt_value, is_encrypted
 from board_of_directors import BoardOfDirectors
 
 router = APIRouter(prefix="", tags=["Chat"])
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 def get_user_groq_key(user_id: int, db: Session) -> str:
@@ -55,7 +46,7 @@ def chat_with_mentor(
     db: Session = Depends(get_db)
 ):
     """Chat with AI mentor using Board of Directors architecture"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     try:
         groq_key = get_user_groq_key(user.id, db)
@@ -124,7 +115,7 @@ User Message: {message.message}
 @router.get("/advice/{email}")
 def get_advice(email: str, limit: int = 20, db: Session = Depends(get_db)):
     """Get advice history for a user"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     advice = db.query(models.AgentAdvice).filter(
         models.AgentAdvice.user_id == user.id
@@ -148,7 +139,7 @@ def get_advice(email: str, limit: int = 20, db: Session = Depends(get_db)):
 @router.get("/chat-history/{email}")
 def get_chat_history(email: str, limit: int = 50, db: Session = Depends(get_db)):
     """Get chat history with AI mentor"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     chats = db.query(models.AgentAdvice).filter(
         models.AgentAdvice.user_id == user.id,

@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import models
 from database import get_db
+from db_utils import get_user
 from integrations.github_client import GitHubClient
 
 router = APIRouter(prefix="", tags=["Analysis"])
@@ -18,16 +19,6 @@ router = APIRouter(prefix="", tags=["Analysis"])
 # Single instance for efficiency
 github_client = GitHubClient()
 
-
-def get_user_by_email_lookup(email: str, db: Session):
-    """Internal helper to find user by email."""
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=f"User with email '{email}' not found."
-        )
-    return user
 
 
 @router.post("/analyze-github/{github_username}")
@@ -126,7 +117,7 @@ def get_github_analysis(github_username: str, db: Session = Depends(get_db)):
 @router.get("/github-activity/{email}")
 def get_github_activity(email: str, days: int = 7, db: Session = Depends(get_db)):
     """Get real-time GitHub activity for a user"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     if not user.github_username:
         return {
@@ -151,7 +142,7 @@ def analyze_time_allocation(
     db: Session = Depends(get_db)
 ):
     """AI analysis of time allocation vs. stated priorities"""
-    user = get_user_by_email_lookup(email, db)
+    user = get_user(email, db)
 
     cutoff = datetime.utcnow() - timedelta(weeks=weeks)
 
