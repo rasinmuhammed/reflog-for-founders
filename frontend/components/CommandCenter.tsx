@@ -58,7 +58,7 @@ export default function CommandCenter({ userEmail, userName }: CommandCenterProp
     const loadDashboard = async () => {
         setLoading(true)
         try {
-            const res = await axios.get(`${API_URL}/cos/founder-dashboard/${encodeURIComponent(userEmail)}`)
+            const res = await axios.get(`${API_URL}/dashboard/${encodeURIComponent(userEmail)}`)
             setData(res.data)
         } catch (err) {
             console.error('Failed to load dashboard:', err)
