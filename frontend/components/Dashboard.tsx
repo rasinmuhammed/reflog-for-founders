@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { UserButton } from '@clerk/nextjs'
 import axios from 'axios'
 import {
@@ -10,25 +10,27 @@ import {
 } from 'lucide-react'
 import CheckInModal from './CheckInModal'
 import AgentInsights from './AgentInsights'
-import Chat from './Chat'
-import LifeDecisions from './LifeDecisions'
-import InteractionHistory from './InteractionHistory'
-import CommitmentTracker from './CommitmentTracker'
 import NotificationBanner from './NotificationBanner'
-import CommitmentCalendar from './CommitmentCalendar'
 import NotificationSettings from './NotificationSettings'
 import ApiKeySetup from './ApiKeySetup'
-import MetricsInput from './MetricsInput'
 import FounderScore from './FounderScore'
-import TimeAllocation from './TimeAllocation'
-import WeeklyReview from './WeeklyReview'
 import QuickCheckin from './QuickCheckin'
-import AvoidancePatterns from './AvoidancePatterns'
-import CommandCenter from './CommandCenter'
-// Phase 2 Components - Predictive Features
-import ShadowRoast from './ShadowRoast'
-import PivotSimulator from './PivotSimulator'
-import DriftAlerts from './DriftAlerts'
+
+// Lazy load heavy components for better performance
+const Chat = lazy(() => import('./Chat'))
+const CommandCenter = lazy(() => import('./CommandCenter'))
+const LifeDecisions = lazy(() => import('./LifeDecisions'))
+const InteractionHistory = lazy(() => import('./InteractionHistory'))
+const CommitmentTracker = lazy(() => import('./CommitmentTracker'))
+const CommitmentCalendar = lazy(() => import('./CommitmentCalendar'))
+const MetricsInput = lazy(() => import('./MetricsInput'))
+const TimeAllocation = lazy(() => import('./TimeAllocation'))
+const WeeklyReview = lazy(() => import('./WeeklyReview'))
+const AvoidancePatterns = lazy(() => import('./AvoidancePatterns'))
+// Phase 2 Components - Lazy loaded
+const ShadowRoast = lazy(() => import('./ShadowRoast'))
+const PivotSimulator = lazy(() => import('./PivotSimulator'))
+const DriftAlerts = lazy(() => import('./DriftAlerts'))
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -277,10 +279,19 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
           </div>
         </div>
 
-        <CommandCenter
-          userEmail={userIdentifier}
-          userName={data.user.full_name || undefined}
-        />
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="animate-pulse text-center">
+              <Brain className="w-12 h-12 mx-auto mb-4 text-purple-400" />
+              <p className="text-sm text-gray-400">Loading Command Center...</p>
+            </div>
+          </div>
+        }>
+          <CommandCenter
+            userEmail={userIdentifier}
+            userName={data.user.full_name || undefined}
+          />
+        </Suspense>
 
         {showSettings && (
           <NotificationSettings
@@ -408,23 +419,63 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
         )}
 
         {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Drift Alerts - Top Priority */}
-            <DriftAlerts
-              userIdentifier={userIdentifier}
-              onAlertCount={setAlertCount}
-            />
+          <Suspense fallback={<div className="animate-pulse h-96 bg-gray-800/20 rounded-xl" />}>
+            <div className="space-y-6">
+              {/* Drift Alerts - Top Priority */}
+              <DriftAlerts
+                userIdentifier={userIdentifier}
+                onAlertCount={setAlertCount}
+              />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - Stats & Shadow Mode */}
-              <div className="lg:col-span-1 space-y-6">
-                <FounderScore userIdentifier={userIdentifier} />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Stats & Shadow Mode */}
+                <div className="lg:col-span-1 space-y-6">
+                  <FounderScore userIdentifier={userIdentifier} />
 
-                {/* Shadow Mode - The Roast */}
-                <ShadowRoast userIdentifier={userIdentifier} />
+                  {/* Shadow Mode - The Roast */}
+                  <ShadowRoast userIdentifier={userIdentifier} />
 
-                {/* Business Stage Card */}
-                {data.user.business_stage && (
+                  {/* Business Stage Card */}
+                  {data.user.business_stage && (
+                    <div
+                      className="rounded-2xl p-6"
+                      style={{
+                        background: 'var(--color-background-elevated)',
+                        border: '1px solid var(--color-border)'
+                      }}
+                    >
+                      <div className="flex items-center mb-4">
+                        <div
+                          className="p-2 rounded-lg mr-3"
+                          style={{
+                            background: 'var(--color-accent-primary-bg)',
+                            border: '1px solid var(--color-accent-primary-border)'
+                          }}
+                        >
+                          <Target className="w-5 h-5" style={{ color: 'var(--color-accent-primary)' }} />
+                        </div>
+                        <h3 className="text-lg font-bold">Your Journey</h3>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-muted)' }}>Stage</p>
+                          <p className="font-semibold capitalize">
+                            {data.user.business_stage.replace(/_/g, ' ')}
+                          </p>
+                        </div>
+                        {data.user.primary_goal && (
+                          <div>
+                            <p className="text-xs mb-1" style={{ color: 'var(--color-text-muted)' }}>Primary Goal</p>
+                            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                              {data.user.primary_goal}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Execution Stats */}
                   <div
                     className="rounded-2xl p-6"
                     style={{
@@ -432,165 +483,139 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
                       border: '1px solid var(--color-border)'
                     }}
                   >
-                    <div className="flex items-center mb-4">
-                      <div
-                        className="p-2 rounded-lg mr-3"
-                        style={{
-                          background: 'var(--color-accent-primary-bg)',
-                          border: '1px solid var(--color-accent-primary-border)'
-                        }}
-                      >
-                        <Target className="w-5 h-5" style={{ color: 'var(--color-accent-primary)' }} />
-                      </div>
-                      <h3 className="text-lg font-bold">Your Journey</h3>
-                    </div>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-xs mb-1" style={{ color: 'var(--color-text-muted)' }}>Stage</p>
-                        <p className="font-semibold capitalize">
-                          {data.user.business_stage.replace(/_/g, ' ')}
-                        </p>
-                      </div>
-                      {data.user.primary_goal && (
-                        <div>
-                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-muted)' }}>Primary Goal</p>
-                          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                            {data.user.primary_goal}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Execution Stats */}
-                <div
-                  className="rounded-2xl p-6"
-                  style={{
-                    background: 'var(--color-background-elevated)',
-                    border: '1px solid var(--color-border)'
-                  }}
-                >
-                  <h3 className="text-lg font-bold mb-4">Execution Tracker</h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div
-                        className="rounded-xl p-4 text-center"
-                        style={{
-                          background: 'var(--color-accent-success-bg)',
-                          border: '1px solid var(--color-accent-success-border)'
-                        }}
-                      >
+                    <h3 className="text-lg font-bold mb-4">Execution Tracker</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div
-                          className="text-3xl font-bold"
-                          style={{ color: 'var(--color-accent-success-light)' }}
+                          className="rounded-xl p-4 text-center"
+                          style={{
+                            background: 'var(--color-accent-success-bg)',
+                            border: '1px solid var(--color-accent-success-border)'
+                          }}
                         >
-                          {data.stats.current_streak}
+                          <div
+                            className="text-3xl font-bold"
+                            style={{ color: 'var(--color-accent-success-light)' }}
+                          >
+                            {data.stats.current_streak}
+                          </div>
+                          <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                            Day Streak
+                          </div>
                         </div>
-                        <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                          Day Streak
-                        </div>
-                      </div>
-                      <div
-                        className="rounded-xl p-4 text-center flex flex-col justify-center"
-                        style={{ background: 'var(--color-background)' }}
-                      >
-                        <div className="text-2xl font-bold">
-                          {data.stats.success_rate.toFixed(0)}%
-                        </div>
-                        <div className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                          Success Rate
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div
-                        className="rounded-lg p-3 text-center"
-                        style={{ background: 'var(--color-background)' }}
-                      >
-                        <div className="text-2xl font-bold">{data.stats.total_checkins}</div>
-                        <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Reality Checks</div>
-                      </div>
-                      <div
-                        className="rounded-lg p-3 text-center"
-                        style={{ background: 'var(--color-background)' }}
-                      >
                         <div
-                          className="text-2xl font-bold"
-                          style={{ color: 'var(--color-accent-success-light)' }}
+                          className="rounded-xl p-4 text-center flex flex-col justify-center"
+                          style={{ background: 'var(--color-background)' }}
                         >
-                          {data.stats.commitments_kept}
+                          <div className="text-2xl font-bold">
+                            {data.stats.success_rate.toFixed(0)}%
+                          </div>
+                          <div className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                            Success Rate
+                          </div>
                         </div>
-                        <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Shipped</div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div
+                          className="rounded-lg p-3 text-center"
+                          style={{ background: 'var(--color-background)' }}
+                        >
+                          <div className="text-2xl font-bold">{data.stats.total_checkins}</div>
+                          <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Reality Checks</div>
+                        </div>
+                        <div
+                          className="rounded-lg p-3 text-center"
+                          style={{ background: 'var(--color-background)' }}
+                        >
+                          <div
+                            className="text-2xl font-bold"
+                            style={{ color: 'var(--color-accent-success-light)' }}
+                          >
+                            {data.stats.commitments_kept}
+                          </div>
+                          <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Shipped</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Right Column - Metrics & Analysis */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Pivot Simulator - Prominent Placement */}
-                <PivotSimulator userIdentifier={userIdentifier} />
+                {/* Right Column - Metrics & Analysis */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Pivot Simulator - Prominent Placement */}
+                  <PivotSimulator userIdentifier={userIdentifier} />
 
-                <MetricsInput
-                  userIdentifier={userIdentifier}
-                  onUpdate={() => setRefreshKey(prev => prev + 1)}
-                />
-                <AvoidancePatterns userIdentifier={userIdentifier} />
-                <AgentInsights advice={data.recent_advice} />
+                  <MetricsInput
+                    userIdentifier={userIdentifier}
+                    onUpdate={() => setRefreshKey(prev => prev + 1)}
+                  />
+                  <AvoidancePatterns userIdentifier={userIdentifier} />
+                  <AgentInsights advice={data.recent_advice} />
+                </div>
               </div>
             </div>
-          </div>
+          </Suspense>
         )}
 
         {activeTab === 'chat' && (
-          <div className="max-w-5xl mx-auto">
-            <Chat userIdentifier={userIdentifier} />
-          </div>
+          <Suspense fallback={<div className="flex items-center justify-center h-96"><div className="animate-pulse text-gray-400">Loading chat...</div></div>}>
+            <div className="max-w-5xl mx-auto">
+              <Chat userIdentifier={userIdentifier} />
+            </div>
+          </Suspense>
         )}
 
         {activeTab === 'commitments' && (
-          <div className="max-w-6xl mx-auto space-y-6">
-            <CommitmentTracker
-              userIdentifier={userIdentifier}
-              onReviewComplete={() => setRefreshKey(prev => prev + 1)}
-            />
-            <CommitmentCalendar userIdentifier={userIdentifier} />
-          </div>
+          <Suspense fallback={<div className="animate-pulse h-96 bg-gray-800/20 rounded-xl" />}>
+            <div className="max-w-6xl mx-auto space-y-6">
+              <CommitmentTracker
+                userIdentifier={userIdentifier}
+                onReviewComplete={() => setRefreshKey(prev => prev + 1)}
+              />
+              <CommitmentCalendar userIdentifier={userIdentifier} />
+            </div>
+          </Suspense>
         )}
 
         {activeTab === 'time' && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            <TimeAllocation
-              userIdentifier={userIdentifier}
-              statedPriority={data?.user.primary_goal?.toLowerCase().includes('revenue') ? 'revenue' : 'product'}
-            />
-          </div>
+          <Suspense fallback={<div className="animate-pulse h-96 bg-gray-800/20 rounded-xl" />}>
+            <div className="max-w-4xl mx-auto space-y-6">
+              <TimeAllocation
+                userIdentifier={userIdentifier}
+                statedPriority={data?.user.primary_goal?.toLowerCase().includes('revenue') ? 'revenue' : 'product'}
+              />
+            </div>
+          </Suspense>
         )}
 
         {activeTab === 'weekly' && (
-          <div className="max-w-3xl mx-auto">
-            <WeeklyReview
-              userIdentifier={userIdentifier}
-              onComplete={() => setRefreshKey(prev => prev + 1)}
-            />
-          </div>
+          <Suspense fallback={<div className="animate-pulse h-96 bg-gray-800/20 rounded-xl" />}>
+            <div className="max-w-3xl mx-auto">
+              <WeeklyReview
+                userIdentifier={userIdentifier}
+                onComplete={() => setRefreshKey(prev => prev + 1)}
+              />
+            </div>
+          </Suspense>
         )}
 
         {activeTab === 'decisions' && (
-          <div className="max-w-6xl mx-auto space-y-6">
-            {/* Pivot Simulator at top of Decisions tab */}
-            <PivotSimulator userIdentifier={userIdentifier} />
-            <LifeDecisions userIdentifier={userIdentifier} />
-          </div>
+          <Suspense fallback={<div className="animate-pulse h-96 bg-gray-800/20 rounded-xl" />}>
+            <div className="max-w-6xl mx-auto space-y-6">
+              {/* Pivot Simulator at top of Decisions tab */}
+              <PivotSimulator userIdentifier={userIdentifier} />
+              <LifeDecisions userIdentifier={userIdentifier} />
+            </div>
+          </Suspense>
         )}
 
         {activeTab === 'history' && (
-          <div className="max-w-5xl mx-auto">
-            <InteractionHistory userIdentifier={userIdentifier} />
-          </div>
+          <Suspense fallback={<div className="animate-pulse h-96 bg-gray-800/20 rounded-xl" />}>
+            <div className="max-w-5xl mx-auto">
+              <InteractionHistory userIdentifier={userIdentifier} />
+            </div>
+          </Suspense>
         )}
       </main>
 
