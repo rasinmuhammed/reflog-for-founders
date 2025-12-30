@@ -2,17 +2,15 @@
 
 import { useUser } from '@clerk/nextjs'
 import { useState, useEffect } from 'react'
-import CommandCenter from '../components/CommandCenter'
+import Dashboard from '../components/Dashboard'
 import FounderOnboarding from '../components/FounderOnboarding'
 import LandingPage from '../components/LandingPage'
-import { Brain } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export default function Home() {
   const { isSignedIn, isLoaded, user } = useUser()
   const [userEmail, setUserEmail] = useState<string | null>(null)
-  const [userName, setUserName] = useState<string | null>(null)
   const [isOnboarded, setIsOnboarded] = useState(false)
   const [checkingOnboarding, setCheckingOnboarding] = useState(true)
 
@@ -21,7 +19,6 @@ export default function Home() {
       const email = user.emailAddresses?.[0]?.emailAddress
       if (email) {
         setUserEmail(email)
-        setUserName(user.firstName || null)
         checkOnboardingStatus(email)
       } else {
         setCheckingOnboarding(false)
@@ -62,7 +59,7 @@ export default function Home() {
     setIsOnboarded(true)
   }
 
-  // Loading state
+  // Loading state - uses existing palette
   if (!isLoaded || checkingOnboarding) {
     return (
       <div
@@ -70,15 +67,11 @@ export default function Home() {
         style={{ background: 'var(--color-bg-shell)' }}
       >
         <div className="text-center animate-fadeIn">
-          <div
-            className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: 'var(--color-accent-muted)' }}
-          >
-            <Brain
-              className="w-6 h-6 animate-pulse"
-              style={{ color: 'var(--color-accent)' }}
-            />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Reflog"
+            className="w-12 h-12 mx-auto mb-4 object-contain animate-pulse"
+          />
           <p style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>
             Initializing Reflog...
           </p>
@@ -101,11 +94,6 @@ export default function Home() {
     )
   }
 
-  // Command Center for onboarded users
-  return (
-    <CommandCenter
-      userEmail={userEmail!}
-      userName={userName || undefined}
-    />
-  )
+  // New Dashboard with Overview, Brief, Meetings, Actions, Chat, Review
+  return <Dashboard userIdentifier={userEmail!} />
 }
