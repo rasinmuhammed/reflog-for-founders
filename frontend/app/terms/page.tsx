@@ -1,125 +1,137 @@
 'use client'
 
-import { Brain } from 'lucide-react'
-
-export default function TermsPage() {
+export default function TermsOfService() {
     return (
         <div className="min-h-screen" style={{ background: 'var(--color-bg-shell)' }}>
-            {/* Header */}
-            <header className="p-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
-                <div className="max-w-4xl mx-auto flex items-center gap-3">
-                    <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ background: 'var(--color-accent-muted)' }}
-                    >
-                        <Brain className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
-                    </div>
-                    <span className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                        Reflog
-                    </span>
-                </div>
-            </header>
+            <div className="max-w-4xl mx-auto px-6 py-16">
+                <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
+                <p className="text-sm mb-8" style={{ color: 'var(--color-text-muted)' }}>
+                    Last updated: December 30, 2024
+                </p>
 
-            {/* Content */}
-            <main className="max-w-4xl mx-auto px-6 py-12">
-                <h1
-                    className="text-3xl font-bold mb-8"
-                    style={{ color: 'var(--color-text-primary)' }}
-                >
-                    Terms of Service
-                </h1>
-
-                <div className="prose prose-invert" style={{ color: 'var(--color-text-secondary)' }}>
-                    <p className="text-lg mb-6">
-                        Last updated: December 28, 2025
-                    </p>
-
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                            1. Acceptance of Terms
-                        </h2>
-                        <p>
-                            By accessing and using Reflog (&quot;the Service&quot;), you accept and agree to be bound by the terms
-                            and provision of this agreement. If you do not agree to abide by these terms, please do not
-                            use this service.
+                <div className="space-y-8 leading-relaxed">
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            By accessing and using Reflog ("the Service"), you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                            2. Description of Service
-                        </h2>
-                        <p>
-                            Reflog is an Executive Intelligence platform designed to help founders and executives
-                            manage priorities, meetings, and strategic decisions. The Service uses artificial intelligence
-                            to provide insights and recommendations.
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">2. Description of Service</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            Reflog provides executive intelligence and productivity tools for founders, including AI-powered insights, commitment tracking, decision support, and analytics.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                            3. User Responsibilities
-                        </h2>
-                        <ul className="list-disc pl-6 space-y-2">
-                            <li>You are responsible for maintaining the confidentiality of your account credentials</li>
-                            <li>You agree to provide accurate information during registration</li>
-                            <li>You will not use the Service for any unlawful purposes</li>
-                            <li>You are responsible for any API keys you provide (BYOK model)</li>
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">3. User Accounts</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            You are responsible for:
+                        </p>
+                        <ul className="list-disc ml-6 mt-2 space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
+                            <li>Maintaining the security of your account credentials</li>
+                            <li>All activities that occur under your account</li>
+                            <li>Notifying us immediately of any unauthorized access</li>
                         </ul>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                            4. Data and Privacy
-                        </h2>
-                        <p>
-                            Your use of the Service is also governed by our Privacy Policy. By using Reflog,
-                            you consent to the collection and use of information as described in the Privacy Policy.
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">4. Data Ownership</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            <strong>You own your data.</strong> By using Reflog, you grant us a license to use your data solely to:
+                        </p>
+                        <ul className="list-disc ml-6 mt-2 space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
+                            <li>Provide and improve the Service</li>
+                            <li>Generate AI-powered insights and recommendations</li>
+                            <li>Create aggregated, anonymized analytics</li>
+                        </ul>
+                        <p className="mt-2" style={{ color: 'var(--color-text-secondary)' }}>
+                            You can export or delete your data at any time from Settings.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                            5. AI-Generated Content
-                        </h2>
-                        <p>
-                            The Service uses AI to generate insights and recommendations. While we strive for accuracy,
-                            AI-generated content should be reviewed and not solely relied upon for critical business decisions.
-                            Reflog is not liable for decisions made based on AI recommendations.
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">5. Acceptable Use</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            You agree not to:
+                        </p>
+                        <ul className="list-disc ml-6 mt-2 space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
+                            <li>Use the Service for any illegal purpose</li>
+                            <li>Attempt to access or interfere with other users' accounts</li>
+                            <li>Reverse engineer or attempt to extract source code</li>
+                            <li>Use automated systems to scrape or abuse the Service</li>
+                            <li>Share your account credentials with others</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">6. AI-Generated Content</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            Reflog uses AI to generate insights, advice, and analysis. This content:
+                        </p>
+                        <ul className="list-disc ml-6 mt-2 space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
+                            <li>Is provided for informational purposes only</li>
+                            <li>Should not be considered professional advice</li>
+                            <li>May contain errors or inaccuracies</li>
+                            <li>Should be verified independently for critical decisions</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">7. Service Availability</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            We strive for 99.9% uptime but do not guarantee uninterrupted service. We may:
+                        </p>
+                        <ul className="list-disc ml-6 mt-2 space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
+                            <li>Perform scheduled maintenance with advance notice</li>
+                            <li>Experience occasional downtime</li>
+                            <li>Modify or discontinue features with notice</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">8. Termination</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            We reserve the right to suspend or terminate accounts that:
+                        </p>
+                        <ul className="list-disc ml-6 mt-2 space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
+                            <li>Violate these Terms of Service</li>
+                            <li>Engage in abusive or fraudulent behavior</li>
+                            <li>Fail to pay applicable fees (for paid plans)</li>
+                        </ul>
+                        <p className="mt-2" style={{ color: 'var(--color-text-secondary)' }}>
+                            You may delete your account at any time from Settings.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                            6. Limitation of Liability
-                        </h2>
-                        <p>
-                            The Service is provided &quot;as is&quot; without warranties of any kind. Reflog shall not be liable
-                            for any indirect, incidental, special, consequential, or punitive damages resulting from
-                            your use of the Service.
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">9. Limitation of Liability</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            To the maximum extent permitted by law, Reflog shall not be liable for:
+                        </p>
+                        <ul className="list-disc ml-6 mt-2 space-y-1" style={{ color: 'var(--color-text-secondary)' }}>
+                            <li>Any indirect, incidental, or consequential damages</li>
+                            <li>Loss of profits, data, or business opportunities</li>
+                            <li>Decisions made based on AI-generated content</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">10. Changes to Terms</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            We may update these terms from time to time. Continued use of the Service after changes constitutes acceptance of the new terms.
                         </p>
                     </section>
 
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                            7. Changes to Terms
-                        </h2>
-                        <p>
-                            We reserve the right to modify these terms at any time. Continued use of the Service
-                            after changes constitutes acceptance of the new terms.
-                        </p>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                            8. Contact
-                        </h2>
-                        <p>
-                            For questions about these Terms, please contact us at legal@reflog.app
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">11. Contact</h2>
+                        <p style={{ color: 'var(--color-text-secondary)' }}>
+                            Questions about these terms? Contact us at: legal@reflogapp.com
                         </p>
                     </section>
                 </div>
-            </main>
+            </div>
         </div>
     )
 }

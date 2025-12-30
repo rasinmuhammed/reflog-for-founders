@@ -32,7 +32,7 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"
 
 # Import all routers
-from routers import users, checkins, score, gamification, oauth, health
+from routers import users, checkins, score, gamification, oauth, health, data_controls
 from routers import workflows as cos_workflows
 from routers import dashboard, commitments, analysis, decisions, metrics, chat, time_allocation, reviews
 from routers import pivot_simulator, shadow  # Phase 2 predictive features
@@ -114,6 +114,9 @@ app.include_router(reviews.router)  # Weekly reviews & OKRs
 app.include_router(pivot_simulator.router)  # Pivot Simulator
 app.include_router(shadow.router)  # Shadow Mode - The Roast
 app.include_router(alerts.router)  # Drift Alerts
+
+# Data Controls (GDPR Compliance)
+app.include_router(data_controls.router)  # Data export/deletion
 
 # Initialize GitHub analyzer (single instance)
 github_analyzer = GitHubAnalyzer()
