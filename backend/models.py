@@ -68,7 +68,6 @@ class CheckIn(Base):
 
     # Founder-specific fields
     revenue_update = Column(Float, nullable=True)
-    user_update = Column(Integer, nullable=True)
     customer_wins = Column(Text, nullable=True)
     blockers = Column(Text, nullable=True)
 
