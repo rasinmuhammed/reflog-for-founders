@@ -23,12 +23,11 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div
-                className="p-2 rounded-lg"
-                style={{ background: 'var(--color-accent-muted)' }}
-              >
-                <Sparkles className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
-              </div>
+              <img
+                src="/logo.png"
+                alt="Reflog"
+                className="w-8 h-8 object-contain"
+              />
               <span className="text-lg font-semibold">Reflog</span>
             </div>
 
@@ -188,12 +187,11 @@ export default function LandingPage() {
               {/* Mock Dashboard Preview */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: 'var(--color-accent-muted)' }}
-                  >
-                    <Sparkles className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
-                  </div>
+                  <img
+                    src="/logo.png"
+                    alt="Reflog"
+                    className="w-10 h-10 object-contain"
+                  />
                   <div>
                     <p className="font-semibold">Good morning</p>
                     <p
@@ -378,7 +376,11 @@ export default function LandingPage() {
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+            <img
+              src="/logo.png"
+              alt="Reflog"
+              className="w-5 h-5 object-contain"
+            />
             <span className="text-sm font-medium">Reflog</span>
           </div>
           <p
