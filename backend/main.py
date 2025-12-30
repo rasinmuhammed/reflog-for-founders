@@ -24,6 +24,7 @@ from pydantic import BaseModel
 from email_service import EmailService
 from encryption import encrypt_value, decrypt_value, is_encrypted
 from middleware.rate_limit import RateLimitMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware
 import os
 
 # Environment detection
@@ -55,7 +56,10 @@ app = FastAPI(
     redoc_url=None if IS_PRODUCTION else "/redoc"
 )
 
-# Add Rate Limiting Middleware (BEFORE CORS)
+# Add Security Headers Middleware (FIRST)
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Add Rate Limiting Middleware (AFTER Security Headers)
 app.add_middleware(
     RateLimitMiddleware,
     general_limit=100 if not IS_PRODUCTION else 60,  # Stricter in production
