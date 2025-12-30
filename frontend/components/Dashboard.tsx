@@ -93,7 +93,7 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
   const [showCheckin, setShowCheckin] = useState(false)
   const [showQuickCheckin, setShowQuickCheckin] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [activeTab, setActiveTab] = useState<TabType>('command')
+  const [activeTab, setActiveTab] = useState<TabType>('overview')  // Changed to overview to show Shadow Mode by default
   const [showSettings, setShowSettings] = useState(false)
   const [hasGroqKey, setHasGroqKey] = useState(false)
   const [checkingKey, setCheckingKey] = useState(true)
@@ -219,8 +219,8 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
   }
 
   const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
+    { id: 'overview', label: 'Overview', icon: Target },  // Moved to first position
     { id: 'command', label: 'Command', icon: Sparkles },
-    { id: 'overview', label: 'Overview', icon: Target },
     { id: 'chat', label: 'Chat', icon: MessageCircle },
     { id: 'commitments', label: 'Ship', icon: CalendarIcon },
     { id: 'time', label: 'Time', icon: TrendingUp },
