@@ -15,6 +15,7 @@ interface DashboardLayoutProps {
 const navItems = [
     { id: 'overview', label: 'Overview', icon: Target },
     { id: 'brief', label: 'Brief', icon: Sparkles },
+    { id: 'simulator', label: 'Simulator', icon: Target },
     { id: 'meetings', label: 'Meetings', icon: Calendar },
     { id: 'actions', label: 'Actions', icon: BarChart3 },
     { id: 'chat', label: 'Ask Reflog', icon: MessageSquare },

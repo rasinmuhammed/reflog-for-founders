@@ -6,6 +6,7 @@ import DashboardOverview from './DashboardOverview'
 import { Brain } from 'lucide-react'
 
 // Lazy load feature components for performance
+// Lazy load feature components for performance
 const Chat = lazy(() => import('./Chat'))
 const WeeklyReview = lazy(() => import('./WeeklyReview'))
 const MeetingWorkflow = lazy(() => import('./MeetingWorkflow'))
@@ -13,6 +14,7 @@ const ActionTracker = lazy(() => import('./ActionTracker'))
 const QuickCheckin = lazy(() => import('./QuickCheckin'))
 const Settings = lazy(() => import('./Settings'))
 const CommandBrief = lazy(() => import('./CommandBrief'))
+const PivotSimulator = lazy(() => import('./PivotSimulator'))
 
 // Loading skeleton using existing palette
 const LoadingSkeleton = () => (
@@ -29,7 +31,7 @@ interface DashboardProps {
   userIdentifier: string
 }
 
-type ViewType = 'overview' | 'brief' | 'meetings' | 'actions' | 'chat' | 'review' | 'checkin'
+type ViewType = 'overview' | 'brief' | 'meetings' | 'actions' | 'chat' | 'review' | 'checkin' | 'simulator'
 
 export default function Dashboard({ userIdentifier }: DashboardProps) {
   const [activeView, setActiveView] = useState<ViewType>('overview')
@@ -58,6 +60,13 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
         return (
           <Suspense fallback={<LoadingSkeleton />}>
             <CommandBrief userEmail={userIdentifier} />
+          </Suspense>
+        )
+
+      case 'simulator':
+        return (
+          <Suspense fallback={<LoadingSkeleton />}>
+            <PivotSimulator userIdentifier={userIdentifier} />
           </Suspense>
         )
 

@@ -376,6 +376,42 @@ export default function Setting({ userEmail, onClose }: SettingsProps) {
                 )}
               </div>
 
+              {/* Microsoft / Outlook (Placeholder) */}
+              <div
+                className="rounded-xl p-4 mt-4 opacity-75"
+                style={{
+                  background: 'var(--color-bg-shell)',
+                  border: '1px solid var(--color-border)'
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#0078D4] flex items-center justify-center text-white">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.5,2.75L1,5.65c-0.2,0.06-0.34,0.22-0.34,0.43v11.83c0,0.22,0.15,0.39,0.36,0.43l10.48,2.78 c0.12,0.03,0.25-0.01,0.33-0.09c0.09-0.09,0.13-0.2,0.13-0.32V12.01V2.85C11.96,2.6,11.75,2.5,11.5,2.75z M10.46,16.5 l-7.96-1.59v-5.26l7.96,1.25V16.5z M10.46,9.59L2.5,8.34V4.28l7.96-1.92V9.59z M22.9,5.74l-9.94-1.99 c-0.18-0.04-0.36,0.09-0.36,0.28v15.93c0,0.19,0.18,0.32,0.36,0.28l9.94-2c0.27-0.05,0.46-0.29,0.46-0.56V6.31 C23.36,6.03,23.17,5.79,22.9,5.74z M21.86,16.48l-7.76,1.43v-4.7l7.76-1.12V16.48z M21.86,10.74l-7.76,1.13V8.04l7.76-1.39 V10.74z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+                        Microsoft Outlook
+                        <span className="text-[10px] px-2 py-0.5 rounded-full border border-yellow-500/30 text-yellow-500 bg-yellow-500/10">Coming Soon</span>
+                      </h3>
+                      <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Calendar & Teams</p>
+                    </div>
+                  </div>
+                  <button
+                    disabled
+                    className="px-4 py-2 rounded-lg text-sm font-medium opacity-50 cursor-not-allowed"
+                    style={{ background: 'var(--color-bg-elevated)', color: 'var(--color-text-muted)' }}
+                  >
+                    Connect
+                  </button>
+                </div>
+                <p className="text-xs italic" style={{ color: 'var(--color-text-subtle)' }}>
+                  Integration via Microsoft Graph API is currently in development.
+                </p>
+              </div>
+
               <div className="rounded-lg p-3 text-sm" style={{ background: 'var(--color-accent-muted)', color: 'var(--color-text-muted)' }}>
                 🔒 <strong style={{ color: 'var(--color-accent)' }}>Privacy:</strong> Read-only access. Your data is never stored.
               </div>
