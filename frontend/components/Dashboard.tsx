@@ -78,7 +78,7 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
       case 'chat':
         return (
           <Suspense fallback={<LoadingSkeleton />}>
-            <Chat userEmail={userIdentifier} />
+            <Chat userIdentifier={userIdentifier} />
           </Suspense>
         )
 
