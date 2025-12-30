@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import models
 from database import get_db
 from schemas import UnifiedMetricsUpdate
+from cache import cache_5min, invalidate_user_cache
 
 router = APIRouter(prefix="", tags=["Dashboard"])
 
@@ -28,6 +29,7 @@ def get_user_by_email_lookup(email: str, db: Session):
 
 
 @router.get("/dashboard/{identifier}")
+@cache_5min
 def get_dashboard(identifier: str, db: Session = Depends(get_db)):
     """
     Get main dashboard data.

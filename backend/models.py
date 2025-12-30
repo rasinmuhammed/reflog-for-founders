@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, Text
+from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, Text, Index
 from sqlalchemy.dialects.postgresql import JSON
 from datetime import datetime
 from database import Base
@@ -68,8 +68,15 @@ class CheckIn(Base):
 
     # Founder-specific fields
     revenue_update = Column(Float, nullable=True)
+    user_update = Column(Integer, nullable=True)
     customer_wins = Column(Text, nullable=True)
     blockers = Column(Text, nullable=True)
+
+    # Indexes for performance
+    __table_args__ = (
+        Index('idx_checkin_user_timestamp', 'user_id', 'timestamp'),
+        Index('idx_checkin_user_shipped', 'user_id', 'shipped'),
+    )
 
 
 class GitHubAnalysis(Base):
@@ -120,6 +127,12 @@ class LifeEvent(Base):
     simulation_date = Column(DateTime, nullable=True)
     brutal_truth = Column(Text, nullable=True)  # One paragraph honest assessment
 
+    # Index for user queries
+    __table_args__ = (
+        Index('idx_life_event_user_time', 'user_id', 'timestamp'),
+        Index('idx_life_event_type', 'user_id', 'event_type'),
+    )
+
 
 class ShadowData(Base):
     """Stores metadata from Local Truth Agent - NO CODE, only stats"""
@@ -145,6 +158,12 @@ class ShadowData(Base):
     # AI-generated roast
     roast_text = Column(Text, nullable=True)
     truth_bombs = Column(JSON, nullable=True)  # List of uncomfortable truths
+
+    # Indexes for fast queries
+    __table_args__ = (
+        Index('idx_shadow_user_date', 'user_id', 'submission_date'),
+        Index('idx_shadow_user_latest', 'user_id', 'id'),
+    )
 
 
 class BusinessMetric(Base):
