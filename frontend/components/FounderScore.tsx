@@ -86,7 +86,7 @@ export default function FounderScore({ userIdentifier }: FounderScoreProps) {
         )
     }
 
-    if (!scoreData) return null
+    if (!scoreData || !scoreData.breakdown) return null
 
     const { totalScore, breakdown, trend, insight } = scoreData
 
