@@ -15,6 +15,7 @@ import NotificationSettings from './NotificationSettings'
 import ApiKeySetup from './ApiKeySetup'
 import FounderScore from './FounderScore'
 import QuickCheckin from './QuickCheckin'
+import CommandPalette from './CommandPalette'
 
 // Lazy load heavy components for better performance
 const Chat = lazy(() => import('./Chat'))
@@ -31,6 +32,9 @@ const AvoidancePatterns = lazy(() => import('./AvoidancePatterns'))
 const ShadowRoast = lazy(() => import('./ShadowRoast'))
 const PivotSimulator = lazy(() => import('./PivotSimulator'))
 const DriftAlerts = lazy(() => import('./DriftAlerts'))
+
+// Keyboard shortcuts hook
+import { useGlobalShortcuts } from '../hooks/useKeyboardShortcuts'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -95,6 +99,17 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
   const [checkingKey, setCheckingKey] = useState(true)
   const [showApiKeySetup, setShowApiKeySetup] = useState(false)
   const [alertCount, setAlertCount] = useState(0)
+  const [showCommandPalette, setShowCommandPalette] = useState(false)
+
+  // Keyboard shortcuts
+  useGlobalShortcuts({
+    onQuickCheckin: () => setShowQuickCheckin(true),
+    onCommandPalette: () => setShowCommandPalette(true),
+    onNavigateTab: (index) => {
+      const tabIds: TabType[] = ['command', 'overview', 'chat', 'commitments', 'decisions']
+      if (tabIds[index]) setActiveTab(tabIds[index])
+    }
+  })
 
   useEffect(() => {
     loadDashboard()
@@ -672,6 +687,14 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
           onClose={() => setShowQuickCheckin(false)}
         />
       )}
+
+      {/* Command Palette (Cmd+/) */}
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onNavigate={(tab) => setActiveTab(tab as TabType)}
+        onQuickCheckin={() => setShowQuickCheckin(true)}
+      />
     </div>
   )
 }
