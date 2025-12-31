@@ -26,17 +26,6 @@ export default function FloatingCard({
     glowColor,
     delay = 0
 }: FloatingCardProps) {
-    // Floating animation configuration
-    const floatAnimation = {
-        y: [0, -floatDistance, 0],
-        transition: {
-            duration: floatDuration,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: delay
-        }
-    }
-
     // Base card styles with enhanced glassmorphism
     const cardStyles = {
         background: 'var(--color-bg-card)',
@@ -50,7 +39,15 @@ export default function FloatingCard({
 
     return (
         <motion.div
-            animate={floatAnimation}
+            animate={{
+                y: [0, -floatDistance, 0]
+            }}
+            transition={{
+                duration: floatDuration,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: delay
+            }}
             className={`rounded-xl ${className}`}
             style={cardStyles}
         >
