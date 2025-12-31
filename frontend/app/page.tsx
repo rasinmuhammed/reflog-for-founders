@@ -126,7 +126,7 @@ export default function LandingPage() {
             transition={{ delay: 0.1 }}
             className="text-5xl md:text-7xl font-bold mb-6 max-w-4xl"
             style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: "var(--font-display)",
               color: '#F1F3F9',
               lineHeight: 1.1
             }}
@@ -244,7 +244,7 @@ export default function LandingPage() {
             <h2
               className="text-4xl md:text-5xl font-bold mb-4"
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
+                fontFamily: "var(--font-display)",
                 color: '#F1F3F9'
               }}
             >
@@ -288,7 +288,7 @@ export default function LandingPage() {
           <h2
             className="text-4xl md:text-5xl font-bold mb-6"
             style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
+              fontFamily: "var(--font-display)",
               color: '#F1F3F9'
             }}
           >
