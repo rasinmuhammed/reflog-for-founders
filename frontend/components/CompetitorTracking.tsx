@@ -63,7 +63,9 @@ export default function CompetitorTracking({ userIdentifier }: { userIdentifier:
                 axios.get(`${API_URL}/competitors/intel/${userIdentifier}`),
                 axios.get(`${API_URL}/competitors/list/${userIdentifier}`)
             ])
-            setIntelligence(intelRes.data.intelligence || [])
+            // Backend returns array directly, not wrapped in {intelligence: [...]}
+            const intelData = Array.isArray(intelRes.data) ? intelRes.data : (intelRes.data.intelligence || [])
+            setIntelligence(intelData)
             setCompetitors(compRes.data)
         } catch (err) {
             console.error('Failed to load competitor data:', err)
