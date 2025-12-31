@@ -15,6 +15,7 @@ const QuickCheckin = lazy(() => import('./QuickCheckin'))
 const Settings = lazy(() => import('./Settings'))
 const CommandBrief = lazy(() => import('./CommandBrief'))
 const PivotSimulator = lazy(() => import('./PivotSimulator'))
+const CompetitorTracking = lazy(() => import('./CompetitorTracking'))
 
 // Loading skeleton using existing palette
 const LoadingSkeleton = () => (
@@ -31,7 +32,7 @@ interface DashboardProps {
   userIdentifier: string
 }
 
-type ViewType = 'overview' | 'brief' | 'meetings' | 'actions' | 'chat' | 'review' | 'checkin' | 'simulator'
+type ViewType = 'overview' | 'brief' | 'meetings' | 'actions' | 'chat' | 'review' | 'checkin' | 'simulator' | 'competitors'
 
 export default function Dashboard({ userIdentifier }: DashboardProps) {
   const [activeView, setActiveView] = useState<ViewType>('overview')
@@ -67,6 +68,13 @@ export default function Dashboard({ userIdentifier }: DashboardProps) {
         return (
           <Suspense fallback={<LoadingSkeleton />}>
             <PivotSimulator userIdentifier={userIdentifier} />
+          </Suspense>
+        )
+
+      case 'competitors':
+        return (
+          <Suspense fallback={<LoadingSkeleton />}>
+            <CompetitorTracking userIdentifier={userIdentifier} />
           </Suspense>
         )
 

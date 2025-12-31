@@ -3,7 +3,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { UserButton, useUser } from '@clerk/nextjs'
-import { Sparkles, Target, Brain, MessageSquare, Calendar, BarChart3, Settings as SettingsIcon } from 'lucide-react'
+import { Sparkles, Target, Brain, MessageSquare, Calendar, BarChart3, Settings as SettingsIcon, TrendingUp } from 'lucide-react'
 
 interface DashboardLayoutProps {
     children: React.ReactNode
@@ -15,6 +15,7 @@ interface DashboardLayoutProps {
 const navItems = [
     { id: 'overview', label: 'Overview', icon: Target },
     { id: 'brief', label: 'Brief', icon: Sparkles },
+    { id: 'competitors', label: 'Competitors', icon: TrendingUp },
     { id: 'simulator', label: 'Simulator', icon: Target },
     { id: 'meetings', label: 'Meetings', icon: Calendar },
     { id: 'actions', label: 'Actions', icon: BarChart3 },

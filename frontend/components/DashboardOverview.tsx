@@ -2,10 +2,9 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import ShadowRoast from './ShadowRoast'
 import FounderScore from './FounderScore'
 import DriftAlerts from './DriftAlerts'
-import { ArrowRight, Zap, Target, BookOpen, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Zap, Target, BookOpen, CheckCircle2, Brain, Sparkles } from 'lucide-react'
 
 interface DashboardOverviewProps {
     userIdentifier: string
@@ -70,18 +69,113 @@ export default function DashboardOverview({ userIdentifier, onNavigate }: Dashbo
             {/* Bento Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {/* Hero: Shadow Mode - Spans 8 cols */}
+                {/* Hero: Welcome & Getting Started - Spans 8 cols */}
                 <motion.div variants={itemVariants} className="lg:col-span-8">
-                    <ShadowRoast userIdentifier={userIdentifier} />
+                    <div className="card p-8">
+                        <div className="flex items-start gap-4 mb-6">
+                            <div
+                                className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                style={{ background: 'var(--color-accent-muted)' }}
+                            >
+                                <Sparkles className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                                    Welcome to Reflog
+                                </h2>
+                                <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                                    Your AI-powered executive intelligence platform
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Getting Started Steps */}
+                            <button
+                                onClick={() => onNavigate('checkin')}
+                                className="card p-4 text-left hover:scale-[1.02] transition-transform"
+                                style={{ background: 'var(--color-bg-elevated)' }}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <CheckCircle2 className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-success)' }} />
+                                    <div>
+                                        <h3 className="font-semibold mb-1">1. Log Your First Check-in</h3>
+                                        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                            Set your daily commitment and track what you ship
+                                        </p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => onNavigate('competitors')}
+                                className="card p-4 text-left hover:scale-[1.02] transition-transform"
+                                style={{ background: 'var(--color-bg-elevated)' }}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <Target className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-accent)' }} />
+                                    <div>
+                                        <h3 className="font-semibold mb-1">2. Track Competitors</h3>
+                                        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                            Get AI-powered intelligence on your market
+                                        </p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => onNavigate('chat')}
+                                className="card p-4 text-left hover:scale-[1.02] transition-transform"
+                                style={{ background: 'var(--color-bg-elevated)' }}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <Brain className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-warmth)' }} />
+                                    <div>
+                                        <h3 className="font-semibold mb-1">3. Ask Your Board</h3>
+                                        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                            Get strategic advice from AI advisors
+                                        </p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => onNavigate('brief')}
+                                className="card p-4 text-left hover:scale-[1.02] transition-transform"
+                                style={{ background: 'var(--color-bg-elevated)' }}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <Sparkles className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-accent)' }} />
+                                    <div>
+                                        <h3 className="font-semibold mb-1">4. View Your Brief</h3>
+                                        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                            Daily intelligence briefing across all areas
+                                        </p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+
+                        {/* Pro Tip */}
+                        <div
+                            className="mt-6 p-4 rounded-lg"
+                            style={{
+                                background: 'var(--color-accent-muted)',
+                                border: '1px solid var(--color-accent)'
+                            }}
+                        >
+                            <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-accent)' }}>
+                                💡 Pro Tip
+                            </p>
+                            <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                                Start with a daily check-in. Reflog learns from your patterns and gets smarter over time.
+                            </p>
+                        </div>
+                    </div>
                 </motion.div>
 
                 {/* Right Column - Spans 4 cols */}
                 <div className="lg:col-span-4 space-y-6">
-
-                    {/* Founder Score */}
-                    <motion.div variants={itemVariants}>
-                        <FounderScore userIdentifier={userIdentifier} />
-                    </motion.div>
 
                     {/* Quick Actions */}
                     <motion.div
@@ -182,6 +276,6 @@ export default function DashboardOverview({ userIdentifier, onNavigate }: Dashbo
                     </motion.div>
                 </div>
             </div>
-        </motion.div>
+        </motion.div >
     )
 }

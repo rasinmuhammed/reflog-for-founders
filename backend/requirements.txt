@@ -40,5 +40,9 @@ celery==5.3.6
 redis==5.0.1
 apscheduler==3.10.4
 
+# Monitoring & Testing
+sentry-sdk[fastapi]>=2.0.0
+locust>=2.0.0
+
 # Utilities
-python-dotenv==1.0.1PyGithub
+python-dotenv==1.0.1
