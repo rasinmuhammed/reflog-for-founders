@@ -105,7 +105,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 overflow-hidden">
         {/* Abstract Background Shape */}
-        <div className="absolute top-0 right-0 w-[60%] h-full pointer-events-none" style={{ mixBlendMode: 'multiply' }}>
+        <div className="absolute top-0 right-0 w-[60%] h-full pointer-events-none" style={{ mixBlendMode: 'screen' }}>
           <Image
             src="/abstract-hero.png"
             alt=""
