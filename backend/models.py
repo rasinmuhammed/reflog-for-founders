@@ -25,6 +25,7 @@ class User(Base):
     primary_goal = Column(Text, nullable=True)
     check_in_frequency = Column(String(50), default='daily')
     accountability_style = Column(String(50), default='balanced')
+    accountability_source = Column(String(50), default='manual')  # github, calendar, email, manual
     key_metrics = Column(JSON, nullable=True)
     work_preferences = Column(JSON, nullable=True)
 
