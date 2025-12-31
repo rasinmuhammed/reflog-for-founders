@@ -512,6 +512,36 @@ async def quick_assist(
     }
 
 
+# Alias for frontend compatibility
+class ChatRequest(BaseModel):
+    message: str
+
+
+@router.post("/chat/{email}")
+async def cos_chat(
+    email: str,
+    request: ChatRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Chat endpoint for CoS - alias for quick_assist.
+    Accepts 'message' parameter instead of 'question'.
+    """
+    user = get_user_by_email(email, db)
+    cos = get_cos_for_user(user)
+    operating_context = get_context_for_ai(db, user.id)
+
+    response = cos.quick_assist(
+        question=request.message,
+        operating_context=operating_context
+    )
+
+    return {
+        "status": "success",
+        "response": response
+    }
+
+
 # ==============================================================================
 # Action Item CRUD
 # ==============================================================================
