@@ -313,9 +313,6 @@ def submit_shadow_data(
         roast_text=roast_result["roast"],
         truth_bombs=roast_result["truth_bombs"]
     )
-        roast_text=roast_result["roast"],
-        truth_bombs=roast_result["truth_bombs"]
-    )
     db.add(shadow)
     db.commit()
     db.refresh(shadow)
