@@ -291,78 +291,199 @@ function AddActionModal({
         }
     }
 
+    const priorities = [
+        { value: 'low', label: 'Low', color: '#6b7280', bg: 'rgba(107, 114, 128, 0.1)' },
+        { value: 'medium', label: 'Medium', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+        { value: 'high', label: 'High', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+        { value: 'critical', label: 'Critical', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
+    ]
+
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-daintree/90 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(0, 20, 30, 0.85)', backdropFilter: 'blur(12px)' }}
+            onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="card w-full max-w-md">
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold"> Add Action Item </h3>
+            <div
+                className="w-full max-w-lg rounded-2xl overflow-hidden"
+                style={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset'
+                }}
+            >
+                {/* Header */}
+                <div
+                    className="px-6 py-5 flex items-center justify-between"
+                    style={{
+                        background: 'linear-gradient(90deg, rgba(0,194,168,0.1) 0%, transparent 100%)',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)'
+                    }}
+                >
+                    <div className="flex items-center gap-3">
+                        <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center"
+                            style={{
+                                background: 'linear-gradient(135deg, var(--color-accent) 0%, #00a89a 100%)',
+                                boxShadow: '0 4px 12px rgba(0, 194, 168, 0.3)'
+                            }}
+                        >
+                            <Plus className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                New Action Item
+                            </h3>
+                            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                Track what needs to get done
+                            </p>
+                        </div>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="text-muted hover:text-white"
+                        className="p-2 rounded-lg transition-all hover:bg-white/10"
+                        style={{ color: 'var(--color-text-muted)' }}
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                    {/* Title */}
                     <div>
-                        <label className="block text-sm mb-2 text-muted"> What needs to be done? </label>
+                        <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                            <CheckSquare className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+                            What needs to be done?
+                        </label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Action item title..."
+                            placeholder="e.g., Finalize investor deck, Ship v2.0 feature..."
                             required
-                            className="input w-full"
+                            className="w-full px-4 py-3 rounded-xl text-sm transition-all"
+                            style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                border: title ? '1px solid var(--color-accent)' : '1px solid rgba(255,255,255,0.1)',
+                                color: 'var(--color-text-primary)',
+                                outline: 'none'
+                            }}
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm mb-2 text-muted"> Who owns this? </label>
-                        <input
-                            type="text"
-                            value={owner}
-                            onChange={(e) => setOwner(e.target.value)}
-                            placeholder="Owner name..."
-                            required
-                            className="input w-full"
-                        />
+                    {/* Owner & Deadline Row */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                                <User className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+                                Owner
+                            </label>
+                            <input
+                                type="text"
+                                value={owner}
+                                onChange={(e) => setOwner(e.target.value)}
+                                placeholder="Who's responsible?"
+                                required
+                                className="w-full px-4 py-3 rounded-xl text-sm transition-all"
+                                style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: owner ? '1px solid var(--color-accent)' : '1px solid rgba(255,255,255,0.1)',
+                                    color: 'var(--color-text-primary)',
+                                    outline: 'none'
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                                <Clock className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+                                Deadline
+                            </label>
+                            <input
+                                type="date"
+                                value={deadline}
+                                onChange={(e) => setDeadline(e.target.value)}
+                                required
+                                className="w-full px-4 py-3 rounded-xl text-sm transition-all"
+                                style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: deadline ? '1px solid var(--color-accent)' : '1px solid rgba(255,255,255,0.1)',
+                                    color: 'var(--color-text-primary)',
+                                    outline: 'none',
+                                    colorScheme: 'dark'
+                                }}
+                            />
+                        </div>
                     </div>
 
+                    {/* Priority Selection */}
                     <div>
-                        <label className="block text-sm mb-2 text-muted"> Deadline </label>
-                        <input
-                            type="date"
-                            value={deadline}
-                            onChange={(e) => setDeadline(e.target.value)}
-                            required
-                            className="input w-full"
-                        />
+                        <label className="flex items-center gap-2 text-sm font-medium mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="var(--color-accent)" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                            </svg>
+                            Priority Level
+                        </label>
+                        <div className="grid grid-cols-4 gap-2">
+                            {priorities.map((p) => (
+                                <button
+                                    key={p.value}
+                                    type="button"
+                                    onClick={() => setPriority(p.value)}
+                                    className="py-2.5 px-3 rounded-xl text-sm font-medium transition-all"
+                                    style={{
+                                        background: priority === p.value ? p.bg : 'rgba(255,255,255,0.03)',
+                                        border: priority === p.value ? `2px solid ${p.color}` : '1px solid rgba(255,255,255,0.08)',
+                                        color: priority === p.value ? p.color : 'var(--color-text-muted)',
+                                        transform: priority === p.value ? 'scale(1.02)' : 'scale(1)'
+                                    }}
+                                >
+                                    {p.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm mb-2 text-muted"> Priority </label>
-                        <select
-                            value={priority}
-                            onChange={(e) => setPriority(e.target.value)}
-                            className="input w-full"
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all"
+                            style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: 'var(--color-text-muted)'
+                            }}
                         >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="critical">Critical</option>
-                        </select>
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading || !title || !owner || !deadline}
+                            className="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
+                            style={{
+                                background: (!title || !owner || !deadline)
+                                    ? 'rgba(255,255,255,0.1)'
+                                    : 'linear-gradient(135deg, var(--color-accent) 0%, #00a89a 100%)',
+                                color: (!title || !owner || !deadline) ? 'var(--color-text-muted)' : '#fff',
+                                boxShadow: (!title || !owner || !deadline) ? 'none' : '0 4px 14px rgba(0, 194, 168, 0.35)',
+                                cursor: (!title || !owner || !deadline) ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            {loading ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="w-4 h-4" />
+                                    Create Action
+                                </>
+                            )}
+                        </button>
                     </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading || !title || !owner || !deadline}
-                        className="btn btn-primary w-full"
-                    >
-                        {loading ? 'Adding...' : 'Add Action'}
-                    </button>
                 </form>
             </div>
         </div>
