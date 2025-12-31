@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -16,9 +16,21 @@ export default function LandingPage() {
   const [submitted, setSubmitted] = useState(false)
 
   // Redirect signed-in users to dashboard
-  if (isLoaded && isSignedIn) {
-    router.push('/founder')
-    return null
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push('/founder')
+    }
+  }, [isLoaded, isSignedIn, router])
+
+  // Show loading while checking auth
+  if (!isLoaded || isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#012731' }}>
+        <div className="text-center">
+          <Image src="/logo.png" alt="Reflog" width={48} height={48} className="mx-auto animate-pulse" />
+        </div>
+      </div>
+    )
   }
 
   const handleWaitlist = async (e: React.FormEvent) => {
