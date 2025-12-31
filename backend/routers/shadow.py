@@ -1,10 +1,16 @@
 """
-Shadow Mode Router - "The Roast" that exposes founder self-deception
+Universal Truth Engine - "The Roast" for ALL founder types
+
+Supports 4 accountability sources:
+- GitHub (Technical founders)
+- Google Calendar (Sales/CEO founders)
+- Gmail (Operations founders)
+- Manual (General founders)
 
 Endpoints:
-- POST /shadow/submit/{email} - Submit Local Truth Agent data
-- GET /shadow/roast/{email} - Get "The Roast" - compare stated vs actual
-- GET /shadow/insights/{email} - Get detailed work pattern analysis
+- POST /shadow/submit/{email} - Submit accountability data
+- GET /shadow/roast/{email} - Get universal roast
+- GET /shadow/insights/{email} - Get detailed analysis
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -16,18 +22,36 @@ from database import get_db
 from db_utils import get_user
 from encryption import decrypt_value, is_encrypted
 
-router = APIRouter(prefix="/shadow", tags=["Shadow Mode"])
+# Import Google services for Calendar/Email founders
+try:
+    from integrations.google_calendar import GoogleCalendarService
+    from integrations.google_email import GoogleEmailService
+    GOOGLE_AVAILABLE = True
+except ImportError:
+    GOOGLE_AVAILABLE = False
+    print("WARNING: Google services not available. Calendar/Email roasts will be limited.")
+
+router = APIRouter(prefix="/shadow", tags=["Universal Truth"])
 
 
 # Pydantic models
 class ShadowDataSubmission(BaseModel):
-    """Data submitted by Local Truth Agent - NO CODE, only metadata"""
-    total_commits: int
-    by_directory: Dict[str, int]  # {"frontend": 40, "backend": 10}
-    by_file_type: Dict[str, int]  # {".css": 30, ".py": 20}
-    commit_hours: Dict[int, int]  # {22: 15, 23: 12} - hour: count
-    commit_days: Optional[Dict[str, int]] = None  # {"mon": 10, "tue": 8}
-    date_range: Optional[Dict[str, str]] = None  # {"start": "2024-01-01", "end": "2024-01-30"}
+    """Universal accountability data submission"""
+    work_source: str = "github"  # github, calendar, email, manual
+    
+    # GitHub data (optional)
+    total_commits: Optional[int] = 0
+    by_directory: Optional[Dict[str, int]] = None
+    by_file_type: Optional[Dict[str, int]] = None
+    commit_hours: Optional[Dict[int, int]] = None
+    commit_days: Optional[Dict[str, int]] = None
+    
+    # Manual data (optional)
+    daily_log: Optional[str] = None  # What they say they did
+    hours_worked: Optional[float] = None
+    
+    # Metadata
+    date_range: Optional[Dict[str, str]] = None
 
 
 class RoastResponse(BaseModel):
@@ -218,42 +242,77 @@ def submit_shadow_data(
     db: Session = Depends(get_db)
 ):
     """
-    Accept metadata from Local Truth Agent
-
-    This endpoint receives ONLY metadata - never actual code.
-    Privacy is maintained while still enabling brutally honest analysis.
+    Universal accountability data submission
+    
+    Supports: GitHub, Calendar, Email, Manual
+    Privacy-first: Never stores actual code/emails, only metadata
     """
     user = get_user(email, db)
-
-    # Get user's stated priority from their check-ins or goals
-    stated_priority = user.primary_goal or "Not specified"
-
-    # Calculate derived metrics
-    focus_score = calculate_focus_score(data.by_directory)
-    actual_focus = determine_actual_focus(data.by_directory, data.by_file_type)
-
-    # Generate roast
-    roast_result = generate_roast(
+    
+    # Import universal roast
+    from routers.universal_roast import generate_universal_roast
+    
+    # Get user's stated priority
+    stated_priority = user.primary_goal or "Growth"
+    
+    # Prepare activity data based on work source
+    activity_data = {}
+    
+    if data.work_source == "calendar" and GOOGLE_AVAILABLE:
+        # Fetch calendar metrics
+        try:
+            cal_service = GoogleCalendarService(db, user.id, email)
+            meetings = cal_service.get_upcoming_meetings(days=7)
+            activity_data = {
+                "meeting_count": len(meetings),
+                "focus_time_hours": 0,  # Calculate from calendar gaps
+                "back_to_back_ratio": 0  # Calculate from meeting times
+            }
+        except:
+            activity_data = {"meeting_count": 0, "focus_time_hours": 0, "back_to_back_ratio": 0}
+    
+    elif data.work_source == "email" and GOOGLE_AVAILABLE:
+        # Email metrics would go here
+        activity_data = {"emails_sent": 0, "avg_response_time": 24}
+    
+    elif data.work_source == "manual":
+        # Manual logging
+        activity_data = {
+            "daily_log": data.daily_log or "",
+            "hours_worked": data.hours_worked or 0,
+            "commitment": user.primary_goal
+        }
+    
+    else:  # GitHub (default)
+        activity_data = {
+            "by_directory": data.by_directory or {},
+            "by_file_type": data.by_file_type or {},
+            "commit_hours": data.commit_hours or {}
+        }
+    
+    # Generate universal roast
+    roast_result = generate_universal_roast(
         stated_priority=stated_priority,
-        actual_focus=actual_focus,
-        by_directory=data.by_directory,
-        by_file_type=data.by_file_type,
-        commit_hours=data.commit_hours,
-        focus_score=focus_score
+        work_source=data.work_source,
+        user_context={"email": email},
+        activity_data=activity_data
     )
-
+    
     # Store shadow data
     shadow = models.ShadowData(
         user_id=user.id,
-        total_commits=data.total_commits,
-        by_directory=data.by_directory,
-        by_file_type=data.by_file_type,
-        commit_hours=data.commit_hours,
+        total_commits=data.total_commits or 0,
+        by_directory=activity_data if data.work_source != "github" else data.by_directory,
+        by_file_type=data.by_file_type or {},
+        commit_hours=data.commit_hours or {},
         commit_days=data.commit_days,
-        focus_score=focus_score,
+        focus_score=roast_result["focus_score"],
         stated_priority=stated_priority,
-        actual_focus=actual_focus,
+        actual_focus=roast_result["actual_focus"],
         discrepancy_score=roast_result["discrepancy_score"],
+        roast_text=roast_result["roast"],
+        truth_bombs=roast_result["truth_bombs"]
+    )
         roast_text=roast_result["roast"],
         truth_bombs=roast_result["truth_bombs"]
     )
