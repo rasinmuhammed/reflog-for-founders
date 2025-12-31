@@ -70,9 +70,9 @@ export default function WeeklyReview({ userIdentifier, onComplete }: WeeklyRevie
     const handleSubmit = async () => {
         setSubmitting(true)
         try {
-            const response = await axios.post(`${API_URL}/weekly-review/${encodeURIComponent(userIdentifier)}`, {
+            const response = await axios.post(`${API_URL}/weekly-reviews/${encodeURIComponent(userIdentifier)}`, {
                 wins: reviewData.wins.filter(w => w.trim()),
-                key_metrics: { context: reviewData.metricsContext },
+                key_metrics: {}, // Backend expects Dict[str, float], metrics context captured elsewhere
                 biggest_blocker: reviewData.biggestBlocker,
                 what_avoiding: reviewData.whatAvoiding,
                 next_week_focus: reviewData.nextWeekFocus
