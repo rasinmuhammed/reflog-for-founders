@@ -17,6 +17,10 @@
 @import "tailwindcss";
 
 :root {
+  /* Fonts */
+  --font-display: var(--font-playfair, 'Playfair Display', Georgia, serif);
+  --font-body: var(--font-inter, 'Inter', system-ui, sans-serif);
+
   /* Primary Colors */
   --color-daintree: #012731;
   --color-abyssal: #005765;

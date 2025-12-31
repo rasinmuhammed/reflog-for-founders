@@ -497,7 +497,7 @@ export default function FounderOnboarding({ onComplete }: OnboardingProps) {
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 3 && (
+          {step < 4 && (
             <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
               <button
                 onClick={() => setStep(Math.max(0, step - 1))}
