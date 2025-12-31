@@ -252,11 +252,11 @@ export default function CompetitorTracking({ userIdentifier }: { userIdentifier:
                 <div className="text-center py-12">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto" style={{ color: 'var(--color-accent)' }} />
                 </div>
-            ) : intelligence.length === 0 ? (
+            ) : competitors.length === 0 ? (
                 <div className="card p-12 text-center">
                     <Target className="w-12 h-12 mx-auto mb-4 opacity-30" style={{ color: 'var(--color-text-muted)' }} />
                     <p className="text-lg font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                        No competitor intelligence yet
+                        No competitors being tracked
                     </p>
                     <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
                         Add competitors to get AI-powered market intelligence from public sources
@@ -268,73 +268,45 @@ export default function CompetitorTracking({ userIdentifier }: { userIdentifier:
                 </div>
             ) : (
                 <>
-                    {/* Intelligence Cards */}
-                    {intelligence.map((intel, idx) => (
-                        <div key={idx} className="card p-6">
-                            <div className="flex items-start justify-between mb-4">
-                                <div>
-                                    <h3 className="font-bold text-lg" style={{ color: 'var(--color-text-primary)' }}>
-                                        {intel.competitor}
-                                    </h3>
-                                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                                        {intel.category} • Last updated {new Date(intel.last_updated).toLocaleDateString()}
-                                    </p>
-                                </div>
-                                <span className={`text-xs px-3 py-1 rounded-full border ${getThreatBadge(intel.threat_level)}`}>
-                                    {intel.threat_level} threat
-                                </span>
-                            </div>
-
-                            <div className="prose prose-sm mb-4 whitespace-pre-wrap" style={{ color: 'var(--color-text-secondary)' }}>
-                                {intel.brief}
-                            </div>
-
-                            {intel.actions && intel.actions.length > 0 && (
-                                <div className="space-y-2 pt-4 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
-                                    <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
-                                        Recommended Actions
-                                    </p>
-                                    {intel.actions.map((action, i) => (
-                                        <div key={i} className="flex items-start gap-2 text-sm">
-                                            <TrendingUp className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-accent)' }} />
-                                            <span style={{ color: 'var(--color-text-secondary)' }}>{action}</span>
+                    {/* Tracked Competitors List - ALWAYS SHOW FIRST */}
+                    <div className="card p-6">
+                        <h3 className="font-bold text-lg mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                            Tracked Competitors ({competitors.length})
+                        </h3>
+                        <div className="space-y-2">
+                            {competitors.map((comp) => (
+                                <div
+                                    key={comp.id}
+                                    className="flex items-center justify-between p-3 rounded-lg"
+                                    style={{ background: 'var(--color-bg-hover)' }}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div>
+                                            <p className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
+                                                {comp.name}
+                                            </p>
+                                            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                                {comp.category}
+                                                {comp.last_checked && (
+                                                    <span> • Last checked {new Date(comp.last_checked).toLocaleDateString()}</span>
+                                                )}
+                                            </p>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-
-                    {/* Tracked Competitors List */}
-                    {competitors.length > 0 && (
-                        <div className="card p-6">
-                            <h3 className="font-bold text-lg mb-4" style={{ color: 'var(--color-text-primary)' }}>
-                                Tracked Competitors ({competitors.length})
-                            </h3>
-                            <div className="space-y-2">
-                                {competitors.map((comp) => (
-                                    <div
-                                        key={comp.id}
-                                        className="flex items-center justify-between p-3 rounded-lg"
-                                        style={{ background: 'var(--color-bg-hover)' }}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div>
-                                                <p className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
-                                                    {comp.name}
-                                                </p>
-                                                <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                                                    {comp.category}
-                                                    {comp.last_checked && (
-                                                        <span> • Last checked {new Date(comp.last_checked).toLocaleDateString()}</span>
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <a
+                                            href={comp.website}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-secondary text-xs"
+                                        >
+                                            <ExternalLink className="w-3 h-3" />
+                                            Visit
+                                        </a>
                                         <button
                                             onClick={() => handleResearch(comp.id)}
                                             disabled={researching === comp.id}
-                                            className="btn btn-secondary text-xs"
+                                            className="btn btn-primary text-xs"
                                         >
                                             {researching === comp.id ? (
                                                 <>
@@ -349,8 +321,62 @@ export default function CompetitorTracking({ userIdentifier }: { userIdentifier:
                                             )}
                                         </button>
                                     </div>
-                                ))}
+                                </div>
+                            ))}
+                        </div>
+                        {intelligence.length === 0 && (
+                            <div className="mt-4 p-3 rounded-lg text-center" style={{
+                                background: 'var(--color-accent-bg)',
+                                border: '1px solid var(--color-accent)'
+                            }}>
+                                <p className="text-sm" style={{ color: 'var(--color-accent)' }}>
+                                    💡 Click "Research Now" on a competitor to generate AI intelligence
+                                </p>
                             </div>
+                        )}
+                    </div>
+
+                    {/* Intelligence Cards - Show if any exist */}
+                    {intelligence.length > 0 && (
+                        <div className="space-y-4">
+                            <h3 className="font-bold text-lg" style={{ color: 'var(--color-text-primary)' }}>
+                                Intelligence Reports
+                            </h3>
+                            {intelligence.map((intel, idx) => (
+                                <div key={idx} className="card p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div>
+                                            <h3 className="font-bold text-lg" style={{ color: 'var(--color-text-primary)' }}>
+                                                {intel.competitor}
+                                            </h3>
+                                            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                                {intel.category} • Last updated {new Date(intel.last_updated).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <span className={`text-xs px-3 py-1 rounded-full border ${getThreatBadge(intel.threat_level)}`}>
+                                            {intel.threat_level} threat
+                                        </span>
+                                    </div>
+
+                                    <div className="prose prose-sm mb-4 whitespace-pre-wrap" style={{ color: 'var(--color-text-secondary)' }}>
+                                        {intel.brief}
+                                    </div>
+
+                                    {intel.actions && intel.actions.length > 0 && (
+                                        <div className="space-y-2 pt-4 border-t" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                                            <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                                                Recommended Actions
+                                            </p>
+                                            {intel.actions.map((action, i) => (
+                                                <div key={i} className="flex items-start gap-2 text-sm">
+                                                    <TrendingUp className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-accent)' }} />
+                                                    <span style={{ color: 'var(--color-text-secondary)' }}>{action}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     )}
                 </>
