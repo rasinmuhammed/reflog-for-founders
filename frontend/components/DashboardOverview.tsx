@@ -4,6 +4,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import FounderScore from './FounderScore'
 import DriftAlerts from './DriftAlerts'
+import RoastSun from './RoastSun'
 import FloatingCard from './ui/FloatingCard'
 import { ArrowRight, Zap, Target, BookOpen, CheckCircle2, Brain, Sparkles } from 'lucide-react'
 
@@ -62,10 +63,15 @@ export default function DashboardOverview({ userIdentifier, onNavigate }: Dashbo
                 </div>
             </div>
 
-            {/* Drift Alerts - Top Priority */}
-            <motion.div variants={itemVariants}>
-                <DriftAlerts userIdentifier={userIdentifier} onAlertCount={() => { }} />
-            </motion.div>
+            {/* Top Row: Drift Alerts + Roast Sun */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <motion.div variants={itemVariants}>
+                    <DriftAlerts userIdentifier={userIdentifier} onAlertCount={() => { }} />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                    <RoastSun userIdentifier={userIdentifier} />
+                </motion.div>
+            </div>
 
             {/* Anti-Gravity Bento Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
