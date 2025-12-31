@@ -31,12 +31,12 @@ def create_weekly_review(
     db_review = models.WeeklyReview(
         user_id=user.id,
         wins=review.wins,
-        challenges=review.challenges,
-        learnings=review.learnings,
-        next_week_priorities=review.next_week_priorities,
-        metrics_snapshot=review.metrics_snapshot,
-        energy_level=review.energy_level,
-        confidence_level=review.confidence_level,
+        challenges=[review.biggest_blocker] if review.biggest_blocker else [],
+        learnings=[review.what_avoiding] if review.what_avoiding else [],
+        next_week_priorities=[review.next_week_focus] if review.next_week_focus else [],
+        metrics_snapshot=review.key_metrics,
+        energy_level=None,
+        confidence_level=None,
         ai_feedback=None  # Can add AI analysis later
     )
     db.add(db_review)
@@ -47,11 +47,10 @@ def create_weekly_review(
         "id": db_review.id,
         "week_of": db_review.created_at.strftime("%Y-%m-%d"),
         "wins": db_review.wins,
-        "challenges": db_review.challenges,
-        "learnings": db_review.learnings,
-        "next_week": db_review.next_week_priorities,
-        "energy": db_review.energy_level,
-        "confidence": db_review.confidence_level
+        "biggest_blocker": review.biggest_blocker,
+        "what_avoiding": review.what_avoiding,
+        "next_week_focus": review.next_week_focus,
+        "ai_analysis": "Review submitted successfully. Keep pushing forward!"
     }
 
 
