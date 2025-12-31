@@ -21,6 +21,7 @@ interface OnboardingData {
   team_size: string
   biggest_challenge: string
   goals: string[]
+  accountability_source: string  // NEW: github, calendar, email, manual
 }
 
 const stages = [
@@ -59,13 +60,15 @@ export default function FounderOnboarding({ onComplete }: OnboardingProps) {
     company_stage: '',
     team_size: '',
     biggest_challenge: '',
-    goals: []
+    goals: [],
+    accountability_source: ''
   })
 
   const steps = [
     { title: 'Your Company', icon: Building },
     { title: 'Your Team', icon: Users },
     { title: 'Your Focus', icon: Target },
+    { title: 'Work Source', icon: Brain },
     { title: 'Ready', icon: Sparkles }
   ]
 
@@ -87,7 +90,8 @@ export default function FounderOnboarding({ onComplete }: OnboardingProps) {
       case 0: return data.company_name.trim() && data.company_stage
       case 1: return data.team_size
       case 2: return data.goals.length > 0
-      case 3: return true
+      case 3: return data.accountability_source !== '' // NEW: require source
+      case 4: return true
       default: return false
     }
   }
@@ -98,9 +102,10 @@ export default function FounderOnboarding({ onComplete }: OnboardingProps) {
       // Backend expects email as query param and OnboardingData in body
       await axios.post(`${API_URL}/users/onboard?email=${encodeURIComponent(email)}`, {
         business_stage: data.company_stage || 'idea',
-        primary_goal: data.goals || 'Building MVP',
+        primary_goal: data.goals[0] || 'Building MVP',
         check_in_frequency: 'daily',
         accountability_style: 'balanced',
+        accountability_source: data.accountability_source || 'manual', // NEW: Send source
         key_metrics: ['Revenue', 'Users', 'Growth'],
         biggest_challenge: data.biggest_challenge || 'Not specified',
         work_style: 'focused',
@@ -327,8 +332,113 @@ export default function FounderOnboarding({ onComplete }: OnboardingProps) {
               </motion.div>
             )}
 
-            {/* Step 3: Ready */}
+            {/* Step 3: Work Source (Accountability) */}
             {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="text-center mb-6">
+                  <Brain className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--color-accent)' }} />
+                  <h2 className="text-lg font-semibold">Where Does Your Real Work Happen?</h2>
+                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                    Choose your accountability source
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  <button
+                    onClick={() => updateField('accountability_source', 'github')}
+                    className="p-4 rounded-lg text-left transition"
+                    style={{
+                      background: data.accountability_source === 'github'
+                        ? 'var(--color-accent-muted)'
+                        : 'var(--color-bg-shell)',
+                      border: `1px solid ${data.accountability_source === 'github'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-border)'}`,
+                      color: data.accountability_source === 'github'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-text-secondary)'
+                    }}
+                  >
+                    <div className="font-semibold mb-1">💻 Code (GitHub)</div>
+                    <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                      For technical founders building product
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => updateField('accountability_source', 'calendar')}
+                    className="p-4 rounded-lg text-left transition"
+                    style={{
+                      background: data.accountability_source === 'calendar'
+                        ? 'var(--color-accent-muted)'
+                        : 'var(--color-bg-shell)',
+                      border: `1px solid ${data.accountability_source === 'calendar'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-border)'}`,
+                      color: data.accountability_source === 'calendar'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-text-secondary)'
+                    }}
+                  >
+                    <div className="font-semibold mb-1">📅 Meetings & Sales (Calendar)</div>
+                    <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                      For CEOs, sales leaders, and relationship-driven founders
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => updateField('accountability_source', 'email')}
+                    className="p-4 rounded-lg text-left transition"
+                    style={{
+                      background: data.accountability_source === 'email'
+                        ? 'var(--color-accent-muted)'
+                        : 'var(--color-bg-shell)',
+                      border: `1px solid ${data.accountability_source === 'email'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-border)'}`,
+                      color: data.accountability_source === 'email'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-text-secondary)'
+                    }}
+                  >
+                    <div className="font-semibold mb-1">📧 Operations & Email (Gmail)</div>
+                    <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                      For operations leaders and coordinators
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => updateField('accountability_source', 'manual')}
+                    className="p-4 rounded-lg text-left transition"
+                    style={{
+                      background: data.accountability_source === 'manual'
+                        ? 'var(--color-accent-muted)'
+                        : 'var(--color-bg-shell)',
+                      border: `1px solid ${data.accountability_source === 'manual'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-border)'}`,
+                      color: data.accountability_source === 'manual'
+                        ? 'var(--color-accent)'
+                        : 'var(--color-text-secondary)'
+                    }}
+                  >
+                    <div className="font-semibold mb-1">✍️ Offline/General (Manual)</div>
+                    <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                      For those who track work through daily logs
+                    </div>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 4: Ready */}
+            {step === 4 && (
               <motion.div
                 key="step3"
                 initial={{ opacity: 0, x: 20 }}
