@@ -1,7 +1,7 @@
 # Core Framework
 fastapi==0.109.2
 uvicorn==0.27.1
-pydantic==2.6.1
+pydantic>=2.7.0
 
 # Database
 sqlalchemy==2.0.25
@@ -11,7 +11,7 @@ alembic==1.13.1
 # AI/LLM
 crewai>=0.40.0
 crewai-tools>=0.4.0
-litellm==1.28.0
+litellm>=1.44.22
 groq>=0.4.0
 openai>=1.0.0
 
@@ -48,4 +48,4 @@ sentry-sdk[fastapi]>=2.0.0
 locust>=2.0.0
 
 # Utilities
-python-dotenv==1.0.1
+python-dotenv>=1.0.0
