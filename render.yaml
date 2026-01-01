@@ -3,7 +3,7 @@ services:
   - type: web
     name: reflog-backend
     runtime: python
-    buildCommand: pip install uv && uv pip install -r requirements.txt --system
+    buildCommand: cd backend && pip install uv && uv pip install -r requirements.txt --system
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
