@@ -90,6 +90,10 @@ if IS_PRODUCTION:
         "https://reflogapp.com",
         "https://www.reflogapp.com"
     ]
+    # Allow explicit override from environment variable (e.g., Vercel App)
+    if os.getenv("FRONTEND_URL"):
+        production_origins.append(os.getenv("FRONTEND_URL"))
+        
     allowed_origins = production_origins + ["https://clerk.com", "https://*.clerk.accounts.dev"]
 
 app.add_middleware(
